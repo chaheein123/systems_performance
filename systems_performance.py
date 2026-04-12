@@ -26,9 +26,10 @@ class MainMem:
     mem = [None] * 10
     @classmethod
     def add_to_mem(cls, proc):
-        cls.mem.append(proc)
-        
-
+        for i in range(len(cls.mem)):
+            if cls.mem[i] == None:
+                cls.mem[i] = proc
+                break
 
 
 
