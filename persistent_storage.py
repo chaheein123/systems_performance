@@ -57,3 +57,102 @@
 # The SSD Controller translates LBA #300 into a PBA (the physical silicon address).
 
 # The SSD sends the actual "hi.txt" text back to the Kernel.
+
+ram = [None] * 10
+
+class Kernel:
+    def __init__(self, diskcontroller):
+        self.diskcontroller = diskcontroller
+        self.partition_map = {
+            "inode_table": {
+                "beginning": 0,
+                "end": 19
+            },
+            "data_block": {
+                "beginning": 20,
+                "end": 99
+            }
+        }
+
+        self.file_mapping_lba = {
+            "a.txt": 0,
+            "b.txt": 1,
+            "c.txt": 2,
+            "d.txt": 3,
+            "e.txt": 4,
+            "f.txt": 5,
+        }
+
+    def read_file(self, file_name):
+        lba_index = self.file_mapping_lba[file_name]
+        return self.diskcontroller.get_data(lba_index)
+    
+class DiskController:
+    def __init__(self, ssd):
+        print("Hi I am the diskcontroller")
+        self.ssd = ssd
+    def get_data(self, lba_index):
+        block_page_index = self.ssd.lba[lba_index]
+        block_index = block_page_index["block"]
+        page_index = block_page_index["page"]
+        # print(self.ssd.plane[0])
+        pages = next((item for item in self.ssd.plane if item.block_id == block_index), None).pages
+        print(pages)
+
+
+    
+class Ssd:
+    def __init__(self):
+        self.plane = [Block(i) for i in range(100)]
+
+        # lba's mapping is this: lba key -> PBA
+        # self.lba = {1: {"block": 0, "page": 0}, 2: {"block": 0, "page": 1}, 3: {"block": 0, "page": 2}, 4: {"block": 0, "page": 3}}
+        pages_per_block = 8
+        total_lbas = 100
+
+        # We use (i-1) because your keys start at 1, but hardware addresses start at 0
+        self.lba = {
+            i: {
+                "block": i // pages_per_block, 
+                "page": i % pages_per_block
+            }
+            for i in range(0, total_lbas + 1)
+        }
+    
+    
+
+class Block:
+    def __init__(self, block_id, pages_per_block=8):
+        self.block_id = block_id
+        self.pages = [Page(i) for i in range(pages_per_block)]
+        self.is_empty = True
+
+class Page:
+    def __init__(self, page_id):
+        self.page_id = page_id
+        # Supposed to be 4096 bytes
+        self.data_length = 4
+        self.data = "    "
+        self.is_empty = True
+    
+    def __str__(self):
+        return (f"Page {self.page_id}")
+
+# class DiskController:
+#     def __init__(self):
+#         pass
+
+# class Lba:
+#     def __init__(self):
+#         pass
+
+# my_kernel = Kernel()
+my_ssd = Ssd()
+my_diskcontroller = DiskController(my_ssd)
+my_kernel = Kernel(my_diskcontroller)
+
+# Kernel finds out that a.txt is at LBA 0.  
+my_kernel.read_file("a.txt")
+# print(my_ssd.plane)
+
+
