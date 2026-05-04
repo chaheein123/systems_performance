@@ -57,6 +57,7 @@
 # The SSD Controller translates LBA #300 into a PBA (the physical silicon address).
 
 # The SSD sends the actual "hi.txt" text back to the Kernel.
+from enum import Enum
 
 ram = [None] * 10
 
@@ -96,8 +97,10 @@ class DiskController:
         block_index = block_page_index["block"]
         page_index = block_page_index["page"]
         # print(self.ssd.plane[0])
-        pages = next((item for item in self.ssd.plane if item.block_id == block_index), None).pages
-        print(pages)
+        blocks = next((item for item in self.ssd.plane if item.block_id == block_index), None)
+        page = next((item for item in blocks.pages if item.page_id == page_index), None)
+        print(len(page.data))
+        return page.data
 
 
     
@@ -118,21 +121,28 @@ class Ssd:
             }
             for i in range(0, total_lbas + 1)
         }
-    
-    
 
 class Block:
+    class _BLOCKTYPE(Enum):
+        INODE = 1
+        FAT = 2
+        DATA = 3
+
     def __init__(self, block_id, pages_per_block=8):
         self.block_id = block_id
         self.pages = [Page(i) for i in range(pages_per_block)]
         self.is_empty = True
 
+
 class Page:
     def __init__(self, page_id):
         self.page_id = page_id
         # Supposed to be 4096 bytes
-        self.data_length = 4
-        self.data = "    "
+        self.data_length = 100
+
+        # if self.page_id < 5
+
+        self.data = ""
         self.is_empty = True
     
     def __str__(self):
@@ -150,6 +160,9 @@ class Page:
 my_ssd = Ssd()
 my_diskcontroller = DiskController(my_ssd)
 my_kernel = Kernel(my_diskcontroller)
+
+# Kernel writes data
+my_kernel.write_file("a.txt", )
 
 # Kernel finds out that a.txt is at LBA 0.  
 my_kernel.read_file("a.txt")
