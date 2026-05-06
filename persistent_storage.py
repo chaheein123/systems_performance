@@ -76,17 +76,26 @@ class Kernel:
         }
 
         self.file_mapping_lba = {
-            "a.txt": 0,
-            "b.txt": 1,
-            "c.txt": 2,
-            "d.txt": 3,
-            "e.txt": 4,
-            "f.txt": 5,
+            "a.txt": {"lba": 0, "fs_type": "EXT", "action": self.read_ext},
+            "b.txt": {"lba": 1, "fs_type": "EXT", "action": self.read_ext},
+            "c.txt": {"lba": 2, "fs_type": "EXT", "action": self.read_ext},
+            "d.txt": {"lba": 3, "fs_type": "FAT", "action": self.read_ext},
+            "e.txt": {"lba": 4, "fs_type": "EXT", "action": self.read_ext},
+            "f.txt": {"lba": 5, "fs_type": "EXT", "action": self.read_ext},
         }
+    def read_ext(self, inode_table):
+        print(inode_table, "yoyoyo")
+        pass
 
     def read_file(self, file_name):
-        lba_index = self.file_mapping_lba[file_name]
-        return self.diskcontroller.get_data(lba_index)
+        lba_index = self.file_mapping_lba[file_name]["lba"]
+        # self.read_ext()
+        inode_table = self.diskcontroller.get_data(lba_index)
+        self.file_mapping_lba[file_name]["action"](inode_table)
+    
+    # def write_file(self, file_name, data):
+    #     lba_index = self.file_mapping_lba[file_name]
+    #     return self.diskcontroller.write_data(lba_index, file_name, data)
     
 class DiskController:
     def __init__(self, ssd):
@@ -101,6 +110,11 @@ class DiskController:
         page = next((item for item in blocks.pages if item.page_id == page_index), None)
         print(len(page.data))
         return page.data
+    
+    def write_data(self, lba_index, file_name, data):
+        block_page_index = self.ssd.lba[lba_index]
+        block_index = block_page_index["block"]
+        page_index = block_page_index["page"]
 
 
     
@@ -162,10 +176,8 @@ my_diskcontroller = DiskController(my_ssd)
 my_kernel = Kernel(my_diskcontroller)
 
 # Kernel writes data
-my_kernel.write_file("a.txt", )
+# my_kernel.write_file("a.txt", )
 
 # Kernel finds out that a.txt is at LBA 0.  
 my_kernel.read_file("a.txt")
 # print(my_ssd.plane)
-
-
