@@ -84,14 +84,22 @@ class Kernel:
             "f.txt": {"lba": 5, "fs_type": "EXT", "action": self.read_ext},
         }
     def read_ext(self, inode_table):
-        print(inode_table, "yoyoyo")
-        pass
+        # print(inode_table, len(c), "yoyoyo")
+        key = "blockpointers:"
+        start = inode_table.find("blockpointers:[") + len("blockpointers:[")
+        end = inode_table.find("]", start)
+        raw_value = inode_table[start:end] # This gives you the string "1"
+
+        # 2. Convert to a list
+        # .split(",") handles multiple items, int(x) makes them numbers
+        block_list = [int(x) for x in raw_value.split(",") if x.strip()]
+        return(self.diskcontroller.get_data(block_list))
 
     def read_file(self, file_name):
         lba_index = self.file_mapping_lba[file_name]["lba"]
         # self.read_ext()
-        inode_table = self.diskcontroller.get_data(lba_index)
-        self.file_mapping_lba[file_name]["action"](inode_table)
+        inode_table = self.diskcontroller.get_data([lba_index])
+        return(self.file_mapping_lba[file_name]["action"](inode_table))
     
     # def write_file(self, file_name, data):
     #     lba_index = self.file_mapping_lba[file_name]
@@ -101,15 +109,16 @@ class DiskController:
     def __init__(self, ssd):
         print("Hi I am the diskcontroller")
         self.ssd = ssd
-    def get_data(self, lba_index):
-        block_page_index = self.ssd.lba[lba_index]
-        block_index = block_page_index["block"]
-        page_index = block_page_index["page"]
-        # print(self.ssd.plane[0])
-        blocks = next((item for item in self.ssd.plane if item.block_id == block_index), None)
-        page = next((item for item in blocks.pages if item.page_id == page_index), None)
-        print(len(page.data))
-        return page.data
+    def get_data(self, lba_indexes):
+        data_result = ""
+        for i in lba_indexes:
+            lba_dictionary = self.ssd.lba[i]
+            block_index = lba_dictionary["block"]
+            page_index = lba_dictionary["page"]
+            blocks = next((item for item in self.ssd.plane if item.block_id == block_index), None)
+            page = next((item for item in blocks.pages if item.page_id == page_index), None)
+            data_result += page.data
+            return data_result
     
     def write_data(self, lba_index, file_name, data):
         block_page_index = self.ssd.lba[lba_index]
@@ -127,7 +136,6 @@ class Ssd:
         pages_per_block = 8
         total_lbas = 100
 
-        # We use (i-1) because your keys start at 1, but hardware addresses start at 0
         self.lba = {
             i: {
                 "block": i // pages_per_block, 
@@ -156,7 +164,8 @@ class Page:
 
         # if self.page_id < 5
 
-        self.data = ""
+        # self.data = ""
+        self.data = "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
         self.is_empty = True
     
     def __str__(self):
@@ -179,5 +188,5 @@ my_kernel = Kernel(my_diskcontroller)
 # my_kernel.write_file("a.txt", )
 
 # Kernel finds out that a.txt is at LBA 0.  
-my_kernel.read_file("a.txt")
+print(my_kernel.read_file("a.txt"))
 # print(my_ssd.plane)
