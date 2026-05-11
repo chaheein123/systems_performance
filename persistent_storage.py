@@ -1,62 +1,5 @@
-# LBA -> exposes the whole cylinder and expresses it as an array
-# NAND -> uses page and block. Each LBA's map to a page
-# You cannot use half a page. You're using a full page for anything. Minimum.
-# Application, VFS, FS Driver, Device Driver (NVMe/SATA), Disk Controller, Inode
-# Logical blocks maps to pages
-# For example, if LBA 1 is mapped to page A. If you want to change a data on page A,
-# then you need to use another page and then have the new data on the new page (B, in this case). And then have the LBA 1 mapped to Page B
-# This mapping is done in DRAM cache. which is located right next to the ssd controller
-# Erasing the data is expensive. So erasing the data only happens block-wide. As the pages become invalid and the whole block become invalid, then the block will be cleaned and available for data storage
-# Process $\rightarrow$ VFS (Inode) $\rightarrow$ LBA $\rightarrow$ Page.
-# LBA=4kib, page=4-16kib block=2-8mib
-# fs block=2048, LBA=1024, PBA=4096
-# fs block in a nutshell
-# A. Data Blocks (The Content)
-# This is what you expect. If you save a photo or a main.py file, the actual text and pixels are stored here.
+# dram cache
 
-# What's inside: The raw bytes of your files.
-
-# B. Metadata Blocks (The "Data about the Data")
-# This is the "Brain" of the filesystem. These blocks store the information required to find and manage your files. This includes:
-
-# Inodes: These blocks store the file's size, permissions, owner, and timestamps (Modified/Created).
-
-# Pointers/Extents: This is a "map" that says: "File 'notes.txt' is spread across LBA 100, 101, and 500."
-
-# Directories: A directory is actually just a special "file" (stored in a block) that contains a list of filenames and their corresponding Inode numbers.
-
-# Superblocks: These are the "Master" blocks at the very beginning of the partition that describe the entire filesystem (how many blocks total, how many are free, etc.).
-
-# The Corrected FlowThe Directory Lookup: The Kernel looks at the folder and sees ian.txt $\rightarrow$ Inode #500.The Request (The "Correction"): The Kernel doesn't ask the SSD for a "Block Number." It translates that into an LBA first.Kernel thinks: "Inode #500 lives in FS Block #3 of the Inode Table."Kernel asks SSD: "Hey, give me LBA #200" (because the Kernel already knows that FS Block #3 maps to LBA #200).The SSD Delivery: The SSD finds LBA #200 (using its internal PBA map) and sends that 4KB chunk of data to the RAM.The RAM Discovery: The Kernel looks at that 4KB chunk in RAM and reads: "The actual data for ian.txt lives in LBA #300."The Final Fetch: The Kernel says: "SSD, now give me LBA #300."The Result: The SSD grabs the actual data from the physical silicon and sends it back.
-
-# PartitionLBAs UsedFilesystem TypePartition 10 – 500,000FAT32 (Boot loader)Partition 2500,001 – 200,000,000Ext4 (Your Linux OS)Partition 3200,000,001 – EndXFS (Your Database/Data)
-
-# FS Blocks #1-50 => Inode tables. FS blocks #51-5000 -> Data blocks. And inside each inode table, can have up to 16 inodes. 
-# ohhhh I just understood something. So for ian.txt. if you want to read the file, the kernel gets the LBA from the Inode table, which has the information on which LBA from the DATA blocks. And from there the LBA from the DAta blocks knows where the data is on the pba. So the disk driver gives the data to the kernel and kernel loads into memory and thats how you see the memory?
-
-# The "hi.txt" Data Journey
-# 1. The Inode Hunt (Metadata)
-# The Kernel needs the "ID Card" (Inode) for hi.txt. It knows the Inode Table lives at a specific set of addresses.
-
-# The Kernel calculates the LBA for the FS Block that contains Inode #500.
-
-# The Kernel asks the SSD: "Give me the data at LBA #200."
-
-# The SSD sends back a 4KB FS Block.
-
-# 2. Reading the Map (Inside RAM)
-# The Kernel opens that 4KB block in your MacBook's RAM.
-
-# The Kernel looks at Inode #500 and reads a specific piece of info: "The actual text for hi.txt is stored at LBA #300."
-
-# 3. The Data Grab (The "Actually Data")
-# Now the Kernel knows exactly where to go for the content.
-
-# The Kernel asks the SSD: "Give me the data at LBA #300."
-
-# The SSD Controller translates LBA #300 into a PBA (the physical silicon address).
-
-# The SSD sends the actual "hi.txt" text back to the Kernel.
 from enum import Enum
 
 ram = [None] * 10
@@ -84,10 +27,20 @@ class Kernel:
         #     "e.txt": {"lba": 4, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
         #     "f.txt": {"lba": 5, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
         # }
-    def create_file(self,file_name, fs_type):
+    def create_file(self, file_name, fs_type):
         if file_name not in self.file_mapping_lba:
-            self.file_mapping_lba[file_name] = {"fs_type": fs_type}
-        pass
+            if len(self.file_mapping_lba) == 0:
+                self.file_mapping_lba[file_name] = {"lba": 0}
+            else:
+                max_lba = max(info["lba"] for info in self.file_mapping_lba.values())
+                self.file_mapping_lba[file_name] = {"lba": max_lba + 1}
+            self.file_mapping_lba[file_name]["fs_type"] = fs_type
+            if fs_type == "EXT":
+                self.file_mapping_lba[file_name]["read"] = self.read_ext
+                self.file_mapping_lba[file_name]["write"] = self.write_ext
+            print(f"{file_name} is created!")
+        else:
+            print(f"There is already a file: {file_name}")
 
     def read_ext(self, inode_table):
         # print(inode_table, len(c), "yoyoyo")
@@ -205,8 +158,9 @@ my_kernel = Kernel(my_diskcontroller)
 
 
 # Kernel finds out that a.txt is at LBA 0.
-# my_kernel.create_file("a.txt")
-# print(my_kernel.read_file("a.txt"))
+my_kernel.create_file("a.txt", "EXT")
+my_kernel.create_file("b.txt", "EXT")
+print(my_kernel.read_file("a.txt"))
 # my_kernel.write_data("a.txt", "abcdef")
 # my_kernel.delete_all("a.txt")
 # my_kernel.delete_data("a.txt")
