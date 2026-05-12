@@ -38,6 +38,7 @@ class Kernel:
             if fs_type == "EXT":
                 self.file_mapping_lba[file_name]["read"] = self.read_ext
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
+                # self.write_ext()
             print(f"{file_name} is created!")
         else:
             print(f"There is already a file: {file_name}")
@@ -53,8 +54,10 @@ class Kernel:
         block_list = [int(x) for x in raw_value.split(",") if x.strip()]
         return(self.diskcontroller.get_data(block_list))
     
-    def write_ext(self, inode_table, data):
-        print("hello", inode_table, data)
+    def write_ext(self, lba_index, data):
+        # Homework
+        # Kernel needs to know if the data is longer than
+        # Figure out the blockbitmap of the kernel. It should just be a simple list. [0,0,0,0,0,1,1,1,1,0,1,1,0,0,1,0,1]
         pass
 
     def read_file(self, file_name):
@@ -64,13 +67,12 @@ class Kernel:
     
     def write_data(self, file_name, data):
         lba_index = self.file_mapping_lba[file_name]["lba"]
-        inode_table = self.diskcontroller.get_data([lba_index])
-        return(self.file_mapping_lba[file_name]["write"](inode_table, data))
-    
-    # def write_file(self, file_name, data):
-    #     lba_index = self.file_mapping_lba[file_name]
-    #     return self.diskcontroller.write_data(lba_index, file_name, data)
-    
+        return(self.file_mapping_lba[file_name]["write"](lba_index, data))
+        print(lba_index)
+
+        # inode_table = self.diskcontroller.write_data([lba_index], data)
+        # return(self.file_mapping_lba[file_name]["write"](inode_table, data))
+        
 class DiskController:
     def __init__(self, ssd):
         print("Hi I am the diskcontroller")
@@ -160,7 +162,9 @@ my_kernel = Kernel(my_diskcontroller)
 # Kernel finds out that a.txt is at LBA 0.
 my_kernel.create_file("a.txt", "EXT")
 my_kernel.create_file("b.txt", "EXT")
+my_kernel.create_file("a.txt", "EXT")
 print(my_kernel.read_file("a.txt"))
+my_kernel.write_data("a.txt", "hihihihihi")
 # my_kernel.write_data("a.txt", "abcdef")
 # my_kernel.delete_all("a.txt")
 # my_kernel.delete_data("a.txt")
