@@ -30,6 +30,11 @@ class Kernel:
         #     "f.txt": {"lba": 5, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
         # }
     def create_file(self, file_name, fs_type):
+        # Homework: Fix the create_file() function
+        # This has to look through the self.block_bit_map first to find out the first occurence of 1 and then find the first occurence of 0 after that.
+        # And then change the block bit map to 1 and then add the info to the self.file_mapping_lba.
+        # In this lba, the disk controller needs to have the data on the ssd, such as "author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[1]"
+
         if file_name not in self.file_mapping_lba:
             if len(self.file_mapping_lba) == 0:
                 self.file_mapping_lba[file_name] = {"lba": 0}
@@ -40,11 +45,13 @@ class Kernel:
             if fs_type == "EXT":
                 self.file_mapping_lba[file_name]["read"] = self.read_ext
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
-                # self.write_ext()
+
+                data = f"filename:{filename},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
+                self.write_ext(data)
                 # Need to write to the disk. For example, "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
-                # But delete blockpointers because that is the disk controller's job
             print(f"{file_name} is created!")
             # data = "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
+
         else:
             print(f"There is already a file: {file_name}")
 
@@ -60,16 +67,18 @@ class Kernel:
         return(self.diskcontroller.get_data(block_list))
     
     def write_ext(self, lba_index, data):
+        self.file_mapping_lba = 
+        self.block_bit_map = 
         # self.block_bit_map[lba_index] = 1
         # if 0 not in self.block_bit_map:
         #     self.block_bit_map[0] = 1
         # else:
         #     idx = self.block_bit_map.index(0)
         #     self.block_bit_map[idx] = 1
+        lba_quantity = len(data) % 100
+        
+            
         return (self.diskcontroller.write_data(lba_index, data))
-        # Homework
-        # Kernel needs to know if the data is longer than
-        # Figure out the blockbitmap of the kernel. It should just be a simple list. [0,0,0,0,0,1,1,1,1,0,1,1,0,0,1,0,1]
 
     def read_file(self, file_name):
         lba_index = self.file_mapping_lba[file_name]["lba"]
