@@ -3,6 +3,7 @@
 from enum import Enum
 
 ram = [None] * 10
+lba_length = 100
 
 class Kernel:
     def __init__(self, diskcontroller):
@@ -19,6 +20,7 @@ class Kernel:
         }
 
         self.file_mapping_lba = {}
+        self.block_bit_map = [0] * lba_length * 800
         # self.file_mapping_lba = {
         #     "a.txt": {"lba": 0, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
         #     "b.txt": {"lba": 1, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
@@ -39,7 +41,10 @@ class Kernel:
                 self.file_mapping_lba[file_name]["read"] = self.read_ext
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
                 # self.write_ext()
+                # Need to write to the disk. For example, "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
+                # But delete blockpointers because that is the disk controller's job
             print(f"{file_name} is created!")
+            # data = "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
         else:
             print(f"There is already a file: {file_name}")
 
@@ -55,10 +60,16 @@ class Kernel:
         return(self.diskcontroller.get_data(block_list))
     
     def write_ext(self, lba_index, data):
+        # self.block_bit_map[lba_index] = 1
+        # if 0 not in self.block_bit_map:
+        #     self.block_bit_map[0] = 1
+        # else:
+        #     idx = self.block_bit_map.index(0)
+        #     self.block_bit_map[idx] = 1
+        return (self.diskcontroller.write_data(lba_index, data))
         # Homework
         # Kernel needs to know if the data is longer than
         # Figure out the blockbitmap of the kernel. It should just be a simple list. [0,0,0,0,0,1,1,1,1,0,1,1,0,0,1,0,1]
-        pass
 
     def read_file(self, file_name):
         lba_index = self.file_mapping_lba[file_name]["lba"]
@@ -67,6 +78,7 @@ class Kernel:
     
     def write_data(self, file_name, data):
         lba_index = self.file_mapping_lba[file_name]["lba"]
+        self.block_bit_map[lba_index] = 1
         return(self.file_mapping_lba[file_name]["write"](lba_index, data))
         print(lba_index)
 
@@ -87,36 +99,29 @@ class DiskController:
             page = next((item for item in blocks.pages if item.page_id == page_index), None)
             data_result += page.data
             return data_result
-    
-    # def write_new_data(self, file_name, data):
-        # write_mapping = {
-        #     ""
-        # }
-        # lba_index = self.ss
-        # pass
-        # block_page_index = self.ssd.lba[lba_index]
-        # block_index = block_page_index["block"]
-        # page_index = block_page_index["page"]
+    def write_data(self, lba_index, data):
+        # right now
+        pass
 
-
-    
 class Ssd:
     def __init__(self):
-        self.plane = [Block(i) for i in range(100)]
+        self.plane = [Block(i) for i in range(lba_length)]
         # self.plane[0]
 
         # lba's mapping is this: lba key -> PBA
         # self.lba = {1: {"block": 0, "page": 0}, 2: {"block": 0, "page": 1}, 3: {"block": 0, "page": 2}, 4: {"block": 0, "page": 3}}
         pages_per_block = 8
-        total_lbas = 100
 
-        self.lba = {
-            i: {
-                "block": i // pages_per_block, 
-                "page": i % pages_per_block
-            }
-            for i in range(0, total_lbas + 1)
-        }
+        self.lba = {}
+
+
+        # self.lba = {
+        #     i: {
+        #         "block": i // pages_per_block, 
+        #         "page": i % pages_per_block
+        #     }
+        #     for i in range(0, lba_length)
+        # }
 
 class Block:
     class _BLOCKTYPE(Enum):
