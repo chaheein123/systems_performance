@@ -36,22 +36,19 @@ class Kernel:
         # In this lba, the disk controller needs to have the data on the ssd, such as "author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[1]"
 
         if file_name not in self.file_mapping_lba:
-            if len(self.file_mapping_lba) == 0:
-                self.file_mapping_lba[file_name] = {"lba": 0}
-            else:
-                max_lba = max(info["lba"] for info in self.file_mapping_lba.values())
-                self.file_mapping_lba[file_name] = {"lba": max_lba + 1}
-            self.file_mapping_lba[file_name]["fs_type"] = fs_type
+            new_mapping_index = 0
+            # if 1 not in self.block_bit_map:
+            #     self.block_bit_map[0] = 1
+            if 1 in self.block_bit_map:
+                new_mapping_index = len(self.block_bit_map) - 1 - self.block_bit_map[::-1].index(1) + 1
+            self.block_bit_map[new_mapping_index] = 1
+            self.file_mapping_lba[file_name] = {"lba": new_mapping_index, "fs_type": fs_type}
             if fs_type == "EXT":
                 self.file_mapping_lba[file_name]["read"] = self.read_ext
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
-
                 data = f"filename:{filename},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
-                self.write_ext(data)
-                # Need to write to the disk. For example, "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
-            print(f"{file_name} is created!")
-            # data = "author:Ian Cha,permission:[read,write],uid:3,gid:32,filesize:5102,blockpointers:[1]"
-
+                # self.write_ext(new_mapping_index, data)
+                return (self.diskcontroller.write_data([new_mapping_index], data))
         else:
             print(f"There is already a file: {file_name}")
 
@@ -67,15 +64,10 @@ class Kernel:
         return(self.diskcontroller.get_data(block_list))
     
     def write_ext(self, lba_index, data):
-        self.file_mapping_lba = 
-        self.block_bit_map = 
-        # self.block_bit_map[lba_index] = 1
-        # if 0 not in self.block_bit_map:
-        #     self.block_bit_map[0] = 1
-        # else:
-        #     idx = self.block_bit_map.index(0)
-        #     self.block_bit_map[idx] = 1
+        # Homework
+        # It is kernel's job though to figure out which lba indexes to use for the disk controller
         lba_quantity = len(data) % 100
+        
         
             
         return (self.diskcontroller.write_data(lba_index, data))
@@ -109,7 +101,11 @@ class DiskController:
             data_result += page.data
             return data_result
     def write_data(self, lba_index, data):
-        # right now
+        # Homework:
+        # The kernel does NOT care about the data. It just cares about the length of the data so that it knows how many lba's it needs for the data for each file
+        # The disk controller needs to know the data and the lba_indexes
+        # lba_index is a list
+        100
         pass
 
 class Ssd:
