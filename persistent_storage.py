@@ -35,8 +35,6 @@ class Kernel:
 
         if file_name not in self.file_mapping_lba:
             new_mapping_index = 0
-            # if 1 not in self.block_bit_map:
-            #     self.block_bit_map[0] = 1
             if 1 in self.block_bit_map:
                 new_mapping_index = len(self.block_bit_map) - 1 - self.block_bit_map[::-1].index(1) + 1
             self.block_bit_map[new_mapping_index] = 1
@@ -44,7 +42,7 @@ class Kernel:
             if fs_type == "EXT":
                 self.file_mapping_lba[file_name]["read"] = self.read_ext
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
-                data = f"filename:{filename},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
+                data = f"filename:{file_name},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
                 # self.write_ext(new_mapping_index, data)
                 # return (self.diskcontroller.write_data([new_mapping_index], data))
                 return
@@ -62,10 +60,41 @@ class Kernel:
         block_list = [int(x) for x in raw_value.split(",") if x.strip()]
         return(self.diskcontroller.get_data(block_list))
     
-    def write_ext(self, lba_index, data):
-        # Homework
-        # It is kernel's job though to figure out which lba indexes to use for the disk controller
+    def write_ext(self, file_name, data):
+
+        # data = f"filename:{file_name},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
         lba_quantity = len(data) % page_length
+        new_lba_indexes = []
+        if 1 not in self.block_bit_map:
+            for i in range(lba_quantity):
+                self.block_bit_map[i] = 1
+                new_lba_indexes.append(i)
+        else:
+            new_mapping_index = len(self.block_bit_map) - 1 - self.block_bit_map[::-1].index(1) + 1
+            for i in range(new_mapping_index, new_mapping_index + lba_quantity):
+                self.block_bit_map[i] = 1
+                new_lba_indexes.append(i)
+        
+        inode_data = self.read_file(file_name)
+        list_as_string = ",".join(str(x) for x in new_lba_indexes)
+        key = "blockpointers:["
+        start_idx = inode_data.find(key) + len(key)
+        end_idx = inode_data.find("]", start_idx)
+        updated_string = inode_data[:start_idx] + list_as_string + inode_data[end_idx:]
+        
+
+        # self.file_mapping_lba[file_name]["lba"] = 
+        
+
+        # new_mapping_index = 0
+        # # if 1 not in self.block_bit_map:
+        # #     self.block_bit_map[0] = 1
+        # if 1 in self.block_bit_map:
+        #     new_mapping_index = len(self.block_bit_map) - 1 - self.block_bit_map[::-1].index(1) + 1
+        # self.block_bit_map[new_mapping_index] = 1
+        # self.file_mapping_lba[file_name] = {"lba": new_mapping_index, "fs_type": fs_type}
+
+        # Homework
         
         
             
@@ -77,20 +106,8 @@ class Kernel:
         return(self.file_mapping_lba[file_name]["read"](inode_table))
     
     def write_data(self, file_name, data):
-        # Homework
-        # The kernel is the one that needs to chop up these data and map it to different lba indexes. The disk controller should not get a list as an argument.
-        page_quantity = len(data) // page_length
-        inode_index = self.file_mapping_lba[file_name]["lba"]
-
-        # For example, if you need 2 pages, then look for 2 zeros in the block bit map, and then mark them as 1. Then you can write to those lba indexes
-        # Have 2 methods. One (wirte_ext) will handle the
-        return(self.file_mapping_lba[file_name]["write"](lba_index, inode_index, data))
-
-
-
-        # lba_index = self.file_mapping_lba[file_name]["lba"]
-        # self.block_bit_map[lba_index] = 1
-        # return(self.file_mapping_lba[file_name]["write"](lba_index, data))
+        
+        return(self.file_mapping_lba[file_name]["write"](data))
         
 class DiskController:
     def __init__(self, ssd):
