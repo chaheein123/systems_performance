@@ -4,6 +4,7 @@ from enum import Enum
 
 ram = [None] * 10
 lba_length = 100
+page_length = 100
 
 class Kernel:
     def __init__(self, diskcontroller):
@@ -30,9 +31,6 @@ class Kernel:
         #     "f.txt": {"lba": 5, "fs_type": "EXT", "read": self.read_ext, "write": self.write_ext},
         # }
     def create_file(self, file_name, fs_type):
-        # Homework: Fix the create_file() function
-        # This has to look through the self.block_bit_map first to find out the first occurence of 1 and then find the first occurence of 0 after that.
-        # And then change the block bit map to 1 and then add the info to the self.file_mapping_lba.
         # In this lba, the disk controller needs to have the data on the ssd, such as "author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[1]"
 
         if file_name not in self.file_mapping_lba:
@@ -48,7 +46,8 @@ class Kernel:
                 self.file_mapping_lba[file_name]["write"] = self.write_ext
                 data = f"filename:{filename},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
                 # self.write_ext(new_mapping_index, data)
-                return (self.diskcontroller.write_data([new_mapping_index], data))
+                # return (self.diskcontroller.write_data([new_mapping_index], data))
+                return
         else:
             print(f"There is already a file: {file_name}")
 
@@ -66,7 +65,7 @@ class Kernel:
     def write_ext(self, lba_index, data):
         # Homework
         # It is kernel's job though to figure out which lba indexes to use for the disk controller
-        lba_quantity = len(data) % 100
+        lba_quantity = len(data) % page_length
         
         
             
@@ -78,13 +77,20 @@ class Kernel:
         return(self.file_mapping_lba[file_name]["read"](inode_table))
     
     def write_data(self, file_name, data):
-        lba_index = self.file_mapping_lba[file_name]["lba"]
-        self.block_bit_map[lba_index] = 1
-        return(self.file_mapping_lba[file_name]["write"](lba_index, data))
-        print(lba_index)
+        # Homework
+        # The kernel is the one that needs to chop up these data and map it to different lba indexes. The disk controller should not get a list as an argument.
+        page_quantity = len(data) // page_length
+        inode_index = self.file_mapping_lba[file_name]["lba"]
 
-        # inode_table = self.diskcontroller.write_data([lba_index], data)
-        # return(self.file_mapping_lba[file_name]["write"](inode_table, data))
+        # For example, if you need 2 pages, then look for 2 zeros in the block bit map, and then mark them as 1. Then you can write to those lba indexes
+        # Have 2 methods. One (wirte_ext) will handle the
+        return(self.file_mapping_lba[file_name]["write"](lba_index, inode_index, data))
+
+
+
+        # lba_index = self.file_mapping_lba[file_name]["lba"]
+        # self.block_bit_map[lba_index] = 1
+        # return(self.file_mapping_lba[file_name]["write"](lba_index, data))
         
 class DiskController:
     def __init__(self, ssd):
@@ -101,11 +107,6 @@ class DiskController:
             data_result += page.data
             return data_result
     def write_data(self, lba_index, data):
-        # Homework:
-        # The kernel does NOT care about the data. It just cares about the length of the data so that it knows how many lba's it needs for the data for each file
-        # The disk controller needs to know the data and the lba_indexes
-        # lba_index is a list
-        100
         pass
 
 class Ssd:
@@ -144,7 +145,7 @@ class Page:
     def __init__(self, page_id):
         self.page_id = page_id
         # Supposed to be 4096 bytes
-        self.data_length = 100
+        self.data_length = page_length
 
         # if self.page_id < 5
 
