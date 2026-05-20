@@ -74,6 +74,12 @@ class Kernel:
             for i in range(new_mapping_index, new_mapping_index + lba_quantity):
                 self.block_bit_map[i] = 1
                 new_lba_indexes.append(i)
+
+        new_lba_indexes_data_mapping = {}
+        start_lba_ind = 0
+        for ind in new_lba_indexes:
+            new_lba_indexes_data_mapping[ind] = data[start_lba_ind : start_lba_ind + page_length]
+            start_lba_ind += 100
         
         inode_data = self.read_file(file_name)
         list_as_string = ",".join(str(x) for x in new_lba_indexes)
@@ -81,24 +87,7 @@ class Kernel:
         start_idx = inode_data.find(key) + len(key)
         end_idx = inode_data.find("]", start_idx)
         updated_string = inode_data[:start_idx] + list_as_string + inode_data[end_idx:]
-        
-
-        # self.file_mapping_lba[file_name]["lba"] = 
-        
-
-        # new_mapping_index = 0
-        # # if 1 not in self.block_bit_map:
-        # #     self.block_bit_map[0] = 1
-        # if 1 in self.block_bit_map:
-        #     new_mapping_index = len(self.block_bit_map) - 1 - self.block_bit_map[::-1].index(1) + 1
-        # self.block_bit_map[new_mapping_index] = 1
-        # self.file_mapping_lba[file_name] = {"lba": new_mapping_index, "fs_type": fs_type}
-
-        # Homework
-        
-        
-            
-        return (self.diskcontroller.write_data(lba_index, data))
+        return (self.diskcontroller.write_data(new_lba_indexes_data_mapping, updated_string))
 
     def read_file(self, file_name):
         lba_index = self.file_mapping_lba[file_name]["lba"]
@@ -123,7 +112,10 @@ class DiskController:
             page = next((item for item in blocks.pages if item.page_id == page_index), None)
             data_result += page.data
             return data_result
-    def write_data(self, lba_index, data):
+    def write_data(self, new_lba_indexes_data_mapping, updated_string):
+        # Homework
+        # new_lba_indexes_data_mapping = {2: "ervervevevevrevervevevever", 5: "egergergegergergergergergergeg"}
+        # updated_string = "filename:{file_name},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
         pass
 
 class Ssd:
@@ -192,7 +184,7 @@ my_kernel.create_file("a.txt", "EXT")
 my_kernel.create_file("b.txt", "EXT")
 my_kernel.create_file("a.txt", "EXT")
 print(my_kernel.read_file("a.txt"))
-my_kernel.write_data("a.txt", "hihihihihi")
+# my_kernel.write_data("a.txt", "hihihihihi")
 # my_kernel.write_data("a.txt", "abcdef")
 # my_kernel.delete_all("a.txt")
 # my_kernel.delete_data("a.txt")
