@@ -87,7 +87,9 @@ class Kernel:
         start_idx = inode_data.find(key) + len(key)
         end_idx = inode_data.find("]", start_idx)
         updated_string = inode_data[:start_idx] + list_as_string + inode_data[end_idx:]
-        return (self.diskcontroller.write_data(new_lba_indexes_data_mapping, updated_string))
+
+        lba_index = self.file_mapping_lba[file_name]["lba"]
+        return (self.diskcontroller.write_data(new_lba_indexes_data_mapping, lba_index, updated_string))
 
     def read_file(self, file_name):
         lba_index = self.file_mapping_lba[file_name]["lba"]
@@ -112,10 +114,15 @@ class DiskController:
             page = next((item for item in blocks.pages if item.page_id == page_index), None)
             data_result += page.data
             return data_result
-    def write_data(self, new_lba_indexes_data_mapping, updated_string):
+    def write_data(self, new_lba_indexes_data_mapping, lba_index, updated_string):
         # Homework
         # new_lba_indexes_data_mapping = {2: "ervervevevevrevervevevever", 5: "egergergegergergergergergergeg"}
         # updated_string = "filename:{file_name},author:Ian Cha,permission:[read,write],uid:3,gid:32,blockpointers:[]"
+        # Need to loop through the blocks in self.ssd.plane. And loop through all the pages within the block and find an empty page. 
+        # Set the new data for the lba_index first and then thew new data. 
+
+        
+        
         pass
 
 class Ssd:
