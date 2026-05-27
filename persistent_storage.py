@@ -61,8 +61,8 @@ class DeviceDriver:
         self.submission_queue = []
         self.completion_queue = []
 
-    def translate_to_bin():
-        pass
+    def translate_to_bin(self, cid, opcode, slba, data, block_count=1):
+        submission_queue_entry = SubmissionQueueEntry()
 
     def write_to_submission_queue():
         pass
