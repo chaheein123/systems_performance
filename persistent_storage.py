@@ -60,17 +60,21 @@ class DeviceDriver:
         self.ssd_controller = ssd_controller
         self.submission_queue = []
         self.completion_queue = []
+        self.next_cid = 0
 
     def translate_to_bin(self, cid, opcode, slba, data, block_count=1):
-        submission_queue_entry = SubmissionQueueEntry()
+        submission_queue_entry = SubmissionQueueEntry(cid, opcode, slba, data, block_count)
+        return submission_queue_entry
 
-    def write_to_submission_queue():
+    def write_to_submission_queue(self, submission_queue_entry):
+        self.submission_queue.append(submission_queue_entry)
         pass
 
     def read_from_completion_queue():
         pass
 
     def ring_door_bell():
+        # Let's the controller know that there is a new submission in the queue
         pass
 
     
