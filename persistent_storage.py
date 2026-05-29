@@ -46,16 +46,24 @@ class CompletionQueueEntry:
         self.status = status # "SUCCESS", "ERROR_BAD_LBA", etc.
 
 class SsdController:
-    def __init__(self, ssd):
+    def __init__(self, ssd, kernel):
         self.ssd = ssd
-    def ring_door_bell():
+        self.kernel = kernel
+    def ring_door_bell(self):
         # Let's the controller know that there is a new submission in the queue
+        while len(self.kernel.submission_queue):
+            current_sqe = self.kernel.submission_queue.pop(0)
+            self.process_sqe(current_sqe)
+
+    def process_sqe(self, sqe):
+        # 
         pass
 
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(page_length)]
         self.lba = {}
+    
 
     
 
