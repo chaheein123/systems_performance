@@ -2,6 +2,7 @@ from enum import Enum
 
 ram = [None] * 10
 page_length = 100
+block_num = 10
 pages_per_block = 8
 
 class Kernel:
@@ -49,6 +50,15 @@ class SsdController:
     def __init__(self, ssd, kernel):
         self.ssd = ssd
         self.kernel = kernel
+        self.flash_translation_layer = {}
+
+        # self.flash_translation_layer = {
+        #     0: {
+        #         "block": 0 // pages_per_block, 
+        #         "page": 0 // pages_per_block
+        #     }
+        # }
+
     def ring_door_bell(self):
         # Let's the controller know that there is a new submission in the queue
         while len(self.kernel.submission_queue):
@@ -56,13 +66,12 @@ class SsdController:
             self.process_sqe(current_sqe)
 
     def process_sqe(self, sqe):
-        # 
+        # Homework
         pass
 
 class Ssd:
     def __init__(self):
-        self.plane = [Block(i) for i in range(page_length)]
-        self.lba = {}
+        self.plane = [Block(i) for i in range(block_num)]
     
 
     
