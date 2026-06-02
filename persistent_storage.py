@@ -2,14 +2,37 @@ from enum import Enum
 
 ram = [None] * 10
 page_length = 100
+# There will only be 25 pages used for lba's, while there will be 100 pages (total_pages)
+lba_length = 25
+total_pages = 100
 block_num = 10
 pages_per_block = 8
 
+
 class Kernel:
-    def __init__(self, diskcontroller):
-        self.diskcontroller = diskcontroller
+    def __init__(self, ssd_controller):
+        # self.ssd = ssd
+        self.ssd_controller = ssd_controller
         self.submission_queue = []
         self.completion_queue = []
+
+        # Homework
+        # Look through the SSD's plane and loop through the blocks' pages. If any one of the page is available, then mark the index of the list with "0".
+        block_bit_map = self.ssd_controller.request_block_bit_map()
+    
+
+
+        # self.block_bit_map = [0] * lba_length
+
+        # self.block_bitmap = [1, 1, 0, 0, 0]
+
+        # self.inode_table = {
+        #     "/home/user/photo.jpg": {
+        #         "size_bytes": 4096,
+        #         "permissions": "rw-r--r--",
+        #         "assigned_lbas": [0]  # The kernel maps the FILE to LBA 0
+        #     }
+        # }
 
 class Block:
     class _BLOCKTYPE(Enum):
@@ -59,6 +82,17 @@ class SsdController:
         #     }
         # }
 
+    def request_block_bit_map(self):
+        block_bit_map = [1] * len(self.ssd.plane)
+        for i in range(len(self.ssd.plane)):
+            for page in self.ssd.plane[i]:
+                if page.is_empty:
+                    block_bit_map[i] = 0
+                    break
+        return block_bit_map
+        
+            
+
     def ring_door_bell(self):
         # Let's the controller know that there is a new submission in the queue
         while len(self.kernel.submission_queue):
@@ -66,7 +100,6 @@ class SsdController:
             self.process_sqe(current_sqe)
 
     def process_sqe(self, sqe):
-        # Homework
         pass
 
 class Ssd:
