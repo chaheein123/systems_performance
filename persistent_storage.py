@@ -8,17 +8,22 @@ total_pages = 100
 block_num = 10
 pages_per_block = 8
 
+class FileSystemDriver:
+    def __init__(self, ssd_controller):
+        self.ssd_controller = ssd_controller
+        self.block_bit_map = self.ssd_controller.request_block_bit_map()
+        self.inode_table = self.ssd_controller.request_inode_table()
+
+
 
 class Kernel:
-    def __init__(self, ssd_controller):
+    def __init__(self, ssd_controller, fs_driver):
         # self.ssd = ssd
+        self.fs_driver = fs_driver
         self.ssd_controller = ssd_controller
         self.submission_queue = []
         self.completion_queue = []
 
-        # Homework
-        # Look through the SSD's plane and loop through the blocks' pages. If any one of the page is available, then mark the index of the list with "0".
-        block_bit_map = self.ssd_controller.request_block_bit_map()
     
 
 
@@ -70,9 +75,8 @@ class CompletionQueueEntry:
         self.status = status # "SUCCESS", "ERROR_BAD_LBA", etc.
 
 class SsdController:
-    def __init__(self, ssd, kernel):
+    def __init__(self, ssd):
         self.ssd = ssd
-        self.kernel = kernel
         self.flash_translation_layer = {}
 
         # self.flash_translation_layer = {
@@ -90,6 +94,12 @@ class SsdController:
                     block_bit_map[i] = 0
                     break
         return block_bit_map
+    
+    def request_inode_table(self):
+        # Homework 
+        # Using the inode_map, get the inode table which will be in the string format. It is the job of the kernel to turn the string into the actual dictionary)
+        inode_map = {"block": 0, "page": 0}
+        pass
         
             
 
@@ -157,15 +167,14 @@ class DeviceDriver:
         self.ssd_controller.ring_door_bell()
     
 
-    
-
 
 # Flow: User space -> VFS layer -> FS -> block device -> device driver -> hardware (SSD controller flashes the silicon)
 
 
-# my_ssd = Ssd()
-# my_diskcontroller = DiskController(my_ssd)
-# my_kernel = Kernel(my_diskcontroller)
+my_ssd = Ssd()
+my_ssd_controller = SsdController(my_ssd)
+my_fs_driver = FileSystemDriver(my_ssd_controller)
+my_kernel = Kernel(my_ssd_controller, my_fs_driver)
 
 
 # my_kernel.create_file("a.txt", "EXT")
