@@ -8,19 +8,45 @@ total_pages = 100
 block_num = 10
 pages_per_block = 8
 
+# inodes
+# {
+#     "inode_number": 12,
+#     "file_mode": 0o100644,       # Standard file permissions (-rw-r--r--)
+#     "uid": 1000,                 # Owner ID (user)
+#     "file_size_bytes": 145820,   # Size of the file
+#     "block_pointers": [500]      # <--- BINGO! The data lives at LBA 500
+# }
+
+# data
+# The data itself looks like a pure string
+
+
 class FileSystemDriver:
-    def __init__(self, ssd_controller):
+    def __init__(self, ssd_controller, device_driver):
         self.ssd_controller = ssd_controller
         self.block_bit_map = self.ssd_controller.request_block_bit_map()
-        self.inode_table = self.ssd_controller.request_inode_table()
+        self.super_block_lba = 0
+        self.inode_table = self.get_metadata(self.super_block_lba)
+        self.device_driver = 
+        
+    def get_metadata(self, lba_index):
+        raw_metadata = self.ssd_controller.request_data(lba_index)
+        pass
+
 
 
 
 class Kernel:
-    def __init__(self, ssd_controller, fs_driver):
+    def __init__(self):
         # self.ssd = ssd
-        self.fs_driver = fs_driver
-        self.ssd_controller = ssd_controller
+        # Homework
+        # Figure this part out
+
+        self.fs_driver = FileSystemDriver()
+        self.device_driver = 
+
+        # my_device_driver = DeviceDriver(my_ssd_controller, my_kernel)
+        # my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
         self.submission_queue = []
         self.completion_queue = []
 
@@ -95,11 +121,9 @@ class SsdController:
                     break
         return block_bit_map
     
-    def request_inode_table(self):
-        # Homework 
-        # Using the inode_map, get the inode table which will be in the string format. It is the job of the kernel to turn the string into the actual dictionary)
-        inode_map = {"block": 0, "page": 0}
-        pass
+    # def request_data(self, lba_index):
+    #     inode_map = {"block": 0, "page": 0}
+    #     pass
         
             
 
@@ -172,9 +196,11 @@ class DeviceDriver:
 
 
 my_ssd = Ssd()
-my_ssd_controller = SsdController(my_ssd)
-my_fs_driver = FileSystemDriver(my_ssd_controller)
-my_kernel = Kernel(my_ssd_controller, my_fs_driver)
+# my_ssd_controller = SsdController(my_ssd)
+
+my_kernel = Kernel()
+# my_device_driver = DeviceDriver(my_ssd_controller, my_kernel)
+# my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
 
 
 # my_kernel.create_file("a.txt", "EXT")
