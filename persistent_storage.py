@@ -27,25 +27,31 @@ class FileSystemDriver:
         self.block_bit_map = self.ssd_controller.request_block_bit_map()
         self.super_block_lba = 0
         self.inode_table = self.get_metadata(self.super_block_lba)
-        self.device_driver = 
+        self.device_driver = device_driver
         
     def get_metadata(self, lba_index):
         raw_metadata = self.ssd_controller.request_data(lba_index)
         pass
 
+class BlockDevice:
+    # Another homework
+    # fs -> block device layer -> device driver -> ssd controller -> ssd
+    # Block device is responsible for page cache and request merging
+    def __init__(self, device_driver):
+        self.device_driver = device_driver
 
 
 
 class Kernel:
-    def __init__(self):
+    def __init__(self, ssd_controller):
         # self.ssd = ssd
         # Homework
-        # Figure this part out
+        # Figure this part out. Also fix and remember that fs -> block device layer -> device driver -> ssd controller -> ssd
+        self.ssd_controller = ssd_controller
+        self.device_driver = DeviceDriver(self.ssd_controller)
+        self.fs_driver = FileSystemDriver(self.ssd_controller, self.device_driver)
 
-        self.fs_driver = FileSystemDriver()
-        self.device_driver = 
-
-        # my_device_driver = DeviceDriver(my_ssd_controller, my_kernel)
+        # self.device_driver = DeviceDriver(my_ssd_controller)
         # my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
         self.submission_queue = []
         self.completion_queue = []
@@ -129,9 +135,10 @@ class SsdController:
 
     def ring_door_bell(self):
         # Let's the controller know that there is a new submission in the queue
-        while len(self.kernel.submission_queue):
-            current_sqe = self.kernel.submission_queue.pop(0)
-            self.process_sqe(current_sqe)
+        # while len(self.submission_queue):
+        #     current_sqe = self.submission_queue.pop(0)
+        #     self.process_sqe(current_sqe)
+        pass
 
     def process_sqe(self, sqe):
         pass
@@ -145,11 +152,10 @@ class Ssd:
 
 class DeviceDriver:
 
-    def __init__(self, ssd_controller, kernel):
+    def __init__(self, ssd_controller):
         self.ssd_controller = ssd_controller
-        self.kernel = kernel
-        # self.submission_queue = []
-        # self.completion_queue = []
+        self.submission_queue = []
+        self.completion_queue = []
         self.next_cid = 0
 
     def submit_io(self, opcode, lba, data_payload, num_blocks=1):
@@ -183,7 +189,7 @@ class DeviceDriver:
 
     def write_to_submission_queue(self, submission_queue_entry):
         # Your excellent queue management method
-        self.kernel.submission_queue.append(submission_queue_entry)
+        self.submission_queue.append(submission_queue_entry)
         print(f"[Driver] Appended SQE (CID: {submission_queue_entry.cid}) to SQ. Ringing Doorbell...")
         
         # Ring the doorbell! (Note: watch out for the spelling 'ring_door_bell' vs 'ring_doorbell' 
@@ -196,9 +202,9 @@ class DeviceDriver:
 
 
 my_ssd = Ssd()
-# my_ssd_controller = SsdController(my_ssd)
+my_ssd_controller = SsdController(my_ssd)
 
-my_kernel = Kernel()
+my_kernel = Kernel(my_ssd_controller)
 # my_device_driver = DeviceDriver(my_ssd_controller, my_kernel)
 # my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
 
