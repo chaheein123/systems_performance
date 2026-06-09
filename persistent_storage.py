@@ -22,41 +22,37 @@ pages_per_block = 8
 
 
 class FileSystemDriver:
-    def __init__(self, ssd_controller, device_driver):
+    def __init__(self, block_device):
         self.ssd_controller = ssd_controller
         self.block_bit_map = self.ssd_controller.request_block_bit_map()
         self.super_block_lba = 0
         self.inode_table = self.get_metadata(self.super_block_lba)
-        self.device_driver = device_driver
+        self.block_device = block_device
         
     def get_metadata(self, lba_index):
         raw_metadata = self.ssd_controller.request_data(lba_index)
         pass
 
 class BlockDevice:
-    # Another homework
     # fs -> block device layer -> device driver -> ssd controller -> ssd
     # Block device is responsible for page cache and request merging
     def __init__(self, device_driver):
         self.device_driver = device_driver
+
+    def 
+    
 
 
 
 class Kernel:
     def __init__(self, ssd_controller):
         # self.ssd = ssd
-        # Homework
-        # Figure this part out. Also fix and remember that fs -> block device layer -> device driver -> ssd controller -> ssd
+        # fs -> block device layer -> device driver -> ssd controller -> ssd
         self.ssd_controller = ssd_controller
         self.device_driver = DeviceDriver(self.ssd_controller)
-        self.fs_driver = FileSystemDriver(self.ssd_controller, self.device_driver)
+        self.block_device = BlockDevice(self.device_driver)
+        self.fs_driver = FileSystemDriver(self.block_device)
 
-        # self.device_driver = DeviceDriver(my_ssd_controller)
-        # my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
-        self.submission_queue = []
-        self.completion_queue = []
-
-    
 
 
         # self.block_bit_map = [0] * lba_length
@@ -168,6 +164,7 @@ class DeviceDriver:
         self.next_cid += 1  # Increment it for the next run
         
         # 2. Call your translator helper to package the variables into an SQE
+        # Homework: block for the kernel, means its LBA. So block_count => lba count
         sqe = self.translate_to_bin(
             cid=assigned_cid, 
             opcode=opcode, 
@@ -179,7 +176,7 @@ class DeviceDriver:
         print(f"[Driver] Block Device handed off request. Packaged SQE (CID: {assigned_cid})")
         
         # 3. Call your queue helper to drop it in the list and poke the hardware
-        self.write_to_submission_queue(sqe)
+        # self.write_to_submission_queue(sqe)
 
 
     def translate_to_bin(self, cid, opcode, slba, data, block_count=1):
