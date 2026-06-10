@@ -8,6 +8,9 @@ total_pages = 100
 block_num = 10
 pages_per_block = 8
 
+submission_queue = []
+completion_queue = []
+
 # inodes
 # {
 #     "inode_number": 12,
@@ -108,6 +111,7 @@ class SsdController:
         self.ssd = ssd
         self.flash_translation_layer = {}
 
+
         # self.flash_translation_layer = {
         #     0: {
         #         "block": 0 // pages_per_block, 
@@ -125,24 +129,42 @@ class SsdController:
     #     return block_bit_map
 
     def ring_door_bell(self):
-        # Homework
         # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
-        self.ssd.plane
+        
+        
+        while len(submission_queue):
+            sqe = submission_queue.pop(0)
+            # page_length
+            if sqe.opcode == "WRITE":
+
+                # self.flash_translation_layer[sqe.slba] 
+
+
+
+                for i in range(len(self.ssd.plane)):
+                    for y in range(len(self.ssd.plane[i])):
+                        if self.ssd.plane[i][y].is_empty:
+
+                            for lba_index in range(sqe.slba, sqe.slba + sqe.block_count):
+                                # Homework: 
+                                # I actually need to slice up the data and save the infos in the ftl...
+                                self.flash_translation_layer[lba_index] = {
+                                    "block": i,
+                                    "page": y,
+                                }
+
+            elif sqe.opcode == "READ":
+
+                pass
+
+
+
 
         pass
-    
-    # def request_data(self, lba_index):
-    #     inode_map = {"block": 0, "page": 0}
-    #     pass
         
             
 
-    def ring_door_bell(self):
-        # Let's the controller know that there is a new submission in the queue
-        # while len(self.submission_queue):
-        #     current_sqe = self.submission_queue.pop(0)
-        #     self.process_sqe(current_sqe)
-        pass
+
 
     def process_sqe(self, sqe):
         pass
@@ -150,16 +172,12 @@ class SsdController:
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(block_num)]
-    
 
-    
 
 class DeviceDriver:
 
     def __init__(self, ssd_controller):
         self.ssd_controller = ssd_controller
-        self.submission_queue = []
-        self.completion_queue = []
         self.next_cid = 0
 
     def submit_io(self, opcode, lba, data_payload, num_blocks=1):
@@ -194,13 +212,11 @@ class DeviceDriver:
 
     def write_to_submission_queue(self, submission_queue_entry):
         # Your excellent queue management method
-        self.submission_queue.append(submission_queue_entry)
+        submission_queue.append(submission_queue_entry)
         print(f"[Driver] Appended SQE (CID: {submission_queue_entry.cid}) to SQ. Ringing Doorbell...")
         
-        # Ring the doorbell! (Note: watch out for the spelling 'ring_door_bell' vs 'ring_doorbell' 
-        # based on how you name it in your SSDController class)
         self.ssd_controller.ring_door_bell()
-    
+
 
 
 # Flow: User space -> VFS layer -> FS -> block device -> device driver -> hardware (SSD controller flashes the silicon)
