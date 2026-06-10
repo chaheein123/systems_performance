@@ -23,10 +23,11 @@ pages_per_block = 8
 
 class FileSystemDriver:
     def __init__(self, block_device):
-        self.ssd_controller = ssd_controller
-        self.block_bit_map = self.ssd_controller.request_block_bit_map()
-        self.super_block_lba = 0
+        # FS driver uses the inode table + bloc bit map to find the data. Also, for the kernel, block bit map is actually just lba's. 
         self.inode_table = self.get_metadata(self.super_block_lba)
+        self.block_bit_map = self.ssd_controller.request_block_bit_map()
+        # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
+        self.super_block_lba = 0
         self.block_device = block_device
         
     def get_metadata(self, lba_index):
@@ -113,15 +114,22 @@ class SsdController:
         #         "page": 0 // pages_per_block
         #     }
         # }
+    # This is not needed because ssd controller willgive the 
+    # def request_block_bit_map(self):
+    #     block_bit_map = [1] * len(self.ssd.plane)
+    #     for i in range(len(self.ssd.plane)):
+    #         for page in self.ssd.plane[i]:
+    #             if page.is_empty:
+    #                 block_bit_map[i] = 0
+    #                 break
+    #     return block_bit_map
 
-    def request_block_bit_map(self):
-        block_bit_map = [1] * len(self.ssd.plane)
-        for i in range(len(self.ssd.plane)):
-            for page in self.ssd.plane[i]:
-                if page.is_empty:
-                    block_bit_map[i] = 0
-                    break
-        return block_bit_map
+    def ring_door_bell(self):
+        # Homework
+        # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
+        self.ssd.plane
+
+        pass
     
     # def request_data(self, lba_index):
     #     inode_map = {"block": 0, "page": 0}
@@ -164,7 +172,7 @@ class DeviceDriver:
         self.next_cid += 1  # Increment it for the next run
         
         # 2. Call your translator helper to package the variables into an SQE
-        # Homework: block for the kernel, means its LBA. So block_count => lba count
+        # block for the kernel, means its LBA. So block_count => lba count
         sqe = self.translate_to_bin(
             cid=assigned_cid, 
             opcode=opcode, 
