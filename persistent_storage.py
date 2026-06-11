@@ -137,21 +137,19 @@ class SsdController:
             # page_length
             if sqe.opcode == "WRITE":
 
-                # self.flash_translation_layer[sqe.slba] 
 
-
-
-                for i in range(len(self.ssd.plane)):
-                    for y in range(len(self.ssd.plane[i])):
-                        if self.ssd.plane[i][y].is_empty:
-
-                            for lba_index in range(sqe.slba, sqe.slba + sqe.block_count):
-                                # Homework: 
-                                # I actually need to slice up the data and save the infos in the ftl...
-                                self.flash_translation_layer[lba_index] = {
+                current_lba = sqe.slba
+                while current_lba <= sqe.slba + sqe.block_count:
+                    for i in range(len(self.ssd.plane)):
+                        for y in range(len(self.ssd.plane[i])):
+                            if self.ssd.plane[i][y].is_empty:
+                                # Homework
+                                # Need to slice the data and divide up the data into the correct lba's and save the data.
+                                self.flash_translation_layer[current_lba] = {
                                     "block": i,
                                     "page": y,
                                 }
+                                current_lba += 1
 
             elif sqe.opcode == "READ":
 
