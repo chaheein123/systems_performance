@@ -128,28 +128,61 @@ class SsdController:
     #                 break
     #     return block_bit_map
 
+    def find_available_page(self, ssd):
+        pass
+
+
     def ring_door_bell(self):
         # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
         
-        
+        # Homework
         while len(submission_queue):
             sqe = submission_queue.pop(0)
+
+            searching_lba = []
+            for i in range(sqe.block_count):
+                lba_index = sqe.slba + i
+                if lba_index in self.flash_translation_layer:
+                    raise ValueError("The FTL already contains the index!")
+                searching_lba.append(lba_index)
+            
+            block_count = sqe.block_count
+            block_page_infos = []
+
+            while block_count > 0:
+                for i in range(len(self.ssd.plane)):
+                    for y in range(len(self.ssd.plane[i])):
+                        if self.ssd.plane[i][y].is_empty:
+
+                
+
+            
+
+
+
+            
+
+
             # page_length
             if sqe.opcode == "WRITE":
+                
+
+                pass
 
 
-                current_lba = sqe.slba
-                while current_lba <= sqe.slba + sqe.block_count:
-                    for i in range(len(self.ssd.plane)):
-                        for y in range(len(self.ssd.plane[i])):
-                            if self.ssd.plane[i][y].is_empty:
-                                # Homework
-                                # Need to slice the data and divide up the data into the correct lba's and save the data.
-                                self.flash_translation_layer[current_lba] = {
-                                    "block": i,
-                                    "page": y,
-                                }
-                                current_lba += 1
+
+                # current_lba = sqe.slba
+                # while current_lba <= sqe.slba + sqe.block_count:
+                #     for i in range(len(self.ssd.plane)):
+                #         for y in range(len(self.ssd.plane[i])):
+                #             if self.ssd.plane[i][y].is_empty:
+                #                 # Homework
+                #                 # Need to slice the data and divide up the data into the correct lba's and save the data.
+                #                 self.flash_translation_layer[current_lba] = {
+                #                     "block": i,
+                #                     "page": y,
+                #                 }
+                #                 current_lba += 1
 
             elif sqe.opcode == "READ":
 
