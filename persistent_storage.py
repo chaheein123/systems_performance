@@ -24,6 +24,7 @@ completion_queue = []
 # The data itself looks like a pure string
 
 
+
 class FileSystemDriver:
     def __init__(self, block_device):
         # FS driver uses the inode table + bloc bit map to find the data. Also, for the kernel, block bit map is actually just lba's. 
@@ -135,7 +136,6 @@ class SsdController:
     def ring_door_bell(self):
         # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
         
-        # Homework
         while len(submission_queue):
             sqe = submission_queue.pop(0)
 
@@ -146,13 +146,39 @@ class SsdController:
                     raise ValueError("The FTL already contains the index!")
                 searching_lba.append(lba_index)
             
+            data_lba_mapping = {}
+            beginning_index = 0
+            ending_index = 100
+            for i in range(len(searching_lba)):
+                data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:ending_index]
+                beginning_index += 100
+                ending_index += 100
+            
+
+                        
+
+
             block_count = sqe.block_count
+            
+        
+            sqe.data
+
             block_page_infos = []
 
-            while block_count > 0:
-                for i in range(len(self.ssd.plane)):
-                    for y in range(len(self.ssd.plane[i])):
-                        if self.ssd.plane[i][y].is_empty:
+            # Homework
+            # for i in range(len(self.ssd.plane)):
+            #     for y in range(len(self.ssd.plane[i])):
+            #         if self.ssd.plane[i][y].is_empty:
+            #             # self.ssd.plane[i].is_empty = False
+            #             self.ssd.plane[i][y].is_empty = False
+            #             self.ssd.plane[i][y].data = 
+            #             self.is_empty = True
+            #             first_key = next(iter(data_lba_mapping))
+
+            #             # 2. Pop that key to remove it and get its value
+            #             first_value = data_lba_mapping.pop(first_key)
+
+
 
                 
 
@@ -176,7 +202,6 @@ class SsdController:
                 #     for i in range(len(self.ssd.plane)):
                 #         for y in range(len(self.ssd.plane[i])):
                 #             if self.ssd.plane[i][y].is_empty:
-                #                 # Homework
                 #                 # Need to slice the data and divide up the data into the correct lba's and save the data.
                 #                 self.flash_translation_layer[current_lba] = {
                 #                     "block": i,
