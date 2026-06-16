@@ -129,98 +129,54 @@ class SsdController:
     #                 break
     #     return block_bit_map
 
-    def find_available_page(self, ssd):
-        pass
+    def find_available_page(self, data_lba_mapping):
+        # 
+        if len(data_lba_mapping) == 0:
+            return
+        ftl_index = next(iter(data_lba_mapping))
+        data = data_lba_mapping.pop(ftl_index)
+
+        for i in range(len(self.ssd.plane)):
+            for y in range(len(self.ssd.plane[i])):
+                if self.ssd.plane[i][y].is_empty:
+                    self.ssd.plane[i][y].is_empty = False
+                    self.ssd.plane[i][y].data = data
+                    self.flash_translation_layer[ftl_index] = {
+                        "block": i,
+                        "page": y,
+                    }
+                    return self.find_available_page(data_lba_mapping)
+                    
 
 
     def ring_door_bell(self):
         # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
         
         while len(submission_queue):
+
             sqe = submission_queue.pop(0)
 
-            searching_lba = []
-            for i in range(sqe.block_count):
-                lba_index = sqe.slba + i
-                if lba_index in self.flash_translation_layer:
-                    raise ValueError("The FTL already contains the index!")
-                searching_lba.append(lba_index)
             
-            data_lba_mapping = {}
-            beginning_index = 0
-            ending_index = 100
-            for i in range(len(searching_lba)):
-                data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:ending_index]
-                beginning_index += 100
-                ending_index += 100
-            
-
-                        
-
-
-            block_count = sqe.block_count
-            
-        
-            sqe.data
-
-            block_page_infos = []
-
-            # Homework
-            # for i in range(len(self.ssd.plane)):
-            #     for y in range(len(self.ssd.plane[i])):
-            #         if self.ssd.plane[i][y].is_empty:
-            #             # self.ssd.plane[i].is_empty = False
-            #             self.ssd.plane[i][y].is_empty = False
-            #             self.ssd.plane[i][y].data = 
-            #             self.is_empty = True
-            #             first_key = next(iter(data_lba_mapping))
-
-            #             # 2. Pop that key to remove it and get its value
-            #             first_value = data_lba_mapping.pop(first_key)
-
-
-
-                
-
-            
-
-
-
-            
-
-
-            # page_length
             if sqe.opcode == "WRITE":
+                searching_lba = []
+                for i in range(sqe.block_count):
+                    lba_index = sqe.slba + i
+                    if lba_index in self.flash_translation_layer:
+                        raise ValueError("The FTL already contains the index!")
+                    searching_lba.append(lba_index)
                 
-
-                pass
-
-
-
-                # current_lba = sqe.slba
-                # while current_lba <= sqe.slba + sqe.block_count:
-                #     for i in range(len(self.ssd.plane)):
-                #         for y in range(len(self.ssd.plane[i])):
-                #             if self.ssd.plane[i][y].is_empty:
-                #                 # Need to slice the data and divide up the data into the correct lba's and save the data.
-                #                 self.flash_translation_layer[current_lba] = {
-                #                     "block": i,
-                #                     "page": y,
-                #                 }
-                #                 current_lba += 1
+                data_lba_mapping = {}
+                beginning_index = 0
+                ending_index = 100
+                for i in range(len(searching_lba)):
+                    data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:ending_index]
+                    beginning_index += 100
+                    ending_index += 100
+            
+                self.find_available_page(data_lba_mapping)
 
             elif sqe.opcode == "READ":
-
                 pass
-
-
-
-
-        pass
-        
-            
-
-
 
     def process_sqe(self, sqe):
         pass
