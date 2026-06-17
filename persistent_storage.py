@@ -44,7 +44,10 @@ class BlockDevice:
     def __init__(self, device_driver):
         self.device_driver = device_driver
 
-    def 
+        # Homework
+        # Testing!!!!
+        
+    
     
 
 
@@ -112,27 +115,15 @@ class SsdController:
         self.ssd = ssd
         self.flash_translation_layer = {}
 
-
         # self.flash_translation_layer = {
         #     0: {
         #         "block": 0 // pages_per_block, 
         #         "page": 0 // pages_per_block
         #     }
         # }
-    # This is not needed because ssd controller willgive the 
-    # def request_block_bit_map(self):
-    #     block_bit_map = [1] * len(self.ssd.plane)
-    #     for i in range(len(self.ssd.plane)):
-    #         for page in self.ssd.plane[i]:
-    #             if page.is_empty:
-    #                 block_bit_map[i] = 0
-    #                 break
-    #     return block_bit_map
 
     def find_available_page(self, data_lba_mapping):
-        # 
-        if len(data_lba_mapping) == 0:
-            return
+        if len(data_lba_mapping) == 0: return
         ftl_index = next(iter(data_lba_mapping))
         data = data_lba_mapping.pop(ftl_index)
 
@@ -146,16 +137,13 @@ class SsdController:
                         "page": y,
                     }
                     return self.find_available_page(data_lba_mapping)
-                    
-
+        raise ValueError("The storage is full!")
 
     def ring_door_bell(self):
         # Check the SSD plane. Go through blocks and pages to find the available page. Save the data and update the FTL
-        
         while len(submission_queue):
 
             sqe = submission_queue.pop(0)
-
             
             if sqe.opcode == "WRITE":
                 searching_lba = []
@@ -167,19 +155,18 @@ class SsdController:
                 
                 data_lba_mapping = {}
                 beginning_index = 0
-                ending_index = 100
                 for i in range(len(searching_lba)):
-                    data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:ending_index]
+                    data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:beginning_index+100]
                     beginning_index += 100
-                    ending_index += 100
             
                 self.find_available_page(data_lba_mapping)
 
-            elif sqe.opcode == "READ":
-                pass
-
-    def process_sqe(self, sqe):
-        pass
+            elif sqe.opcode == "READ":                
+                data = ""
+                for i in range(sqe.block_count):
+                    data += self.flash_translation_layer[sqe.slba + i]
+                print("Reading the data...")
+                print(data)
 
 class Ssd:
     def __init__(self):
