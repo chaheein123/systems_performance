@@ -27,12 +27,14 @@ completion_queue = []
 
 class FileSystemDriver:
     def __init__(self, block_device):
+        self.block_device = block_device
         # FS driver uses the inode table + bloc bit map to find the data. Also, for the kernel, block bit map is actually just lba's. 
-        self.inode_table = self.get_metadata(self.super_block_lba)
+        raw_inode_table = self.get_metadata(self.super_block_lba)
+
         self.block_bit_map = self.ssd_controller.request_block_bit_map()
         # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
         self.super_block_lba = 0
-        self.block_device = block_device
+        # self.block_device = block_device
         
     def get_metadata(self, lba_index):
         raw_metadata = self.ssd_controller.request_data(lba_index)
@@ -46,6 +48,18 @@ class BlockDevice:
 
         # Homework
         # Testing!!!!
+        # device_driver.submit_io("READ", 2, "", 1)
+
+    def merge_request(self):
+
+        self.device_driver.submit_io()
+
+    
+
+    
+
+
+
         
     
     
@@ -113,14 +127,14 @@ class CompletionQueueEntry:
 class SsdController:
     def __init__(self, ssd):
         self.ssd = ssd
-        self.flash_translation_layer = {}
+        # self.flash_translation_layer = {}
 
-        # self.flash_translation_layer = {
-        #     0: {
-        #         "block": 0 // pages_per_block, 
-        #         "page": 0 // pages_per_block
-        #     }
-        # }
+        self.flash_translation_layer = {
+            0: {
+                "block": 0 // pages_per_block, 
+                "page": 0 // pages_per_block
+            }
+        }
 
     def find_available_page(self, data_lba_mapping):
         if len(data_lba_mapping) == 0: return
@@ -167,11 +181,13 @@ class SsdController:
                     data += self.flash_translation_layer[sqe.slba + i]
                 print("Reading the data...")
                 print(data)
+                # return data
 
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(block_num)]
-
+        self.plane[0][0].data = "{start_lba: 0, end_lba: 0}"
+        self.plane[0][0].is_empty = False
 
 class DeviceDriver:
 
