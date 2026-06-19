@@ -28,12 +28,20 @@ completion_queue = []
 class FileSystemDriver:
     def __init__(self, block_device):
         self.block_device = block_device
+        # Homework
+        # You NEED To distinguish between reading and writing in the FS driver because if you're writing, you need to look at the block bit map. But if you're reading, you don't need the block bit map
         # FS driver uses the inode table + bloc bit map to find the data. Also, for the kernel, block bit map is actually just lba's. 
-        raw_inode_table = self.get_metadata(self.super_block_lba)
+        # raw_inode_table = self.get_metadata(self.super_block_lba)
+        # self.io_request_queue = []
+        # raw_inode_table = self.block_device.()
 
-        self.block_bit_map = self.ssd_controller.request_block_bit_map()
+        self.block_device.submit_io_request_queue("READ", None)
+
+
+        # self.block_bit_map = self.ssd_controller.request_block_bit_map()
         # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
         self.super_block_lba = 0
+        self.block_device.io_request_queue.append
         # self.block_device = block_device
         
     def get_metadata(self, lba_index):
@@ -45,12 +53,21 @@ class BlockDevice:
     # Block device is responsible for page cache and request merging
     def __init__(self, device_driver):
         self.device_driver = device_driver
+        self.io_request_queue = []
 
-        # Homework
-        # Testing!!!!
         # device_driver.submit_io("READ", 2, "", 1)
+    
+    def submit_io_request_queue(self, opcode, data):
+        self.io_request_queue.append(
+            {"opcode": opcode, "data": data}
+        )
 
-    def merge_request(self):
+    def merge_request(self, opcode, data):
+        slba = 
+        block_count = 
+
+
+
 
         self.device_driver.submit_io()
 
@@ -186,8 +203,14 @@ class SsdController:
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(block_num)]
-        self.plane[0][0].data = "{start_lba: 0, end_lba: 0}"
+        self.plane[0][0].data = "{block_bitmap_start_lba: 1, inode_table_start_lba: 2}"
         self.plane[0][0].is_empty = False
+        init_block_bit_map = [0] * lba_length
+        init_block_bit_map[0:3] = [1, 1, 1]
+        self.plane[0][1].data = str(init_block_bit_map)
+        self.plane[0][1].is_empty = False
+        self.plane[0][2].data = "{}"
+        self.plane[0][2].is_empty = False
 
 class DeviceDriver:
 
@@ -208,7 +231,7 @@ class DeviceDriver:
         # block for the kernel, means its LBA. So block_count => lba count
         sqe = self.translate_to_bin(
             cid=assigned_cid, 
-            opcode=opcode, 
+            opcode=opcode,
             slba=lba, 
             data=data_payload, 
             block_count=num_blocks
