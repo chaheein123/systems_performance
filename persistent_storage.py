@@ -1,6 +1,6 @@
 from enum import Enum
 
-ram = [None] * 10
+ram = [0] * 1000
 page_length = 100
 # There will only be 25 pages used for lba's, while there will be 100 pages (total_pages)
 lba_length = 25
@@ -28,7 +28,6 @@ completion_queue = []
 class FileSystemDriver:
     def __init__(self, block_device):
         self.block_device = block_device
-        # Homework
         # You NEED To distinguish between reading and writing in the FS driver because if you're writing, you need to look at the block bit map. But if you're reading, you don't need the block bit map
         # FS driver uses the inode table + bloc bit map to find the data. Also, for the kernel, block bit map is actually just lba's. 
         # raw_inode_table = self.get_metadata(self.super_block_lba)
@@ -40,13 +39,26 @@ class FileSystemDriver:
 
         # self.block_bit_map = self.ssd_controller.request_block_bit_map()
         # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
-        self.super_block_lba = 0
-        self.block_device.io_request_queue.append
-        # self.block_device = block_device
-        
-    def get_metadata(self, lba_index):
-        raw_metadata = self.ssd_controller.request_data(lba_index)
-        pass
+
+    # Homework
+    # Figure out how to return the data (you're reading the data with the super block lba)
+    def get_inode_table(self):
+        super_block_lba = 0
+        self.read_data(super_block_lba)
+
+    
+    def read_data(self, lba):
+        memory_location = None
+        for i in range(len(ram)):
+            if ram[i] == 0:
+                ram[i] = 1
+                memory_location = i
+                break
+        self.block_device.submit_io_request_queue("READ", memory_location)
+
+    def write_data(self, lba, data):
+        self.block_device.submit_io_request_queue("WRITE", data)
+
 
 class BlockDevice:
     # fs -> block device layer -> device driver -> ssd controller -> ssd
@@ -57,7 +69,7 @@ class BlockDevice:
 
         # device_driver.submit_io("READ", 2, "", 1)
     
-    def submit_io_request_queue(self, opcode, data):
+    def submit_io_request_queue(self, lba, opcode, data):
         self.io_request_queue.append(
             {"opcode": opcode, "data": data}
         )
