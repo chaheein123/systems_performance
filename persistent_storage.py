@@ -33,6 +33,7 @@ class FileSystemDriver:
         # raw_inode_table = self.get_metadata(self.super_block_lba)
         # self.io_request_queue = []
         # raw_inode_table = self.block_device.()
+        self.inode_table = {}
 
         self.block_device.submit_io_request_queue("READ", None)
 
@@ -40,23 +41,30 @@ class FileSystemDriver:
         # self.block_bit_map = self.ssd_controller.request_block_bit_map()
         # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
 
-    # Homework
-    # Figure out how to return the data (you're reading the data with the super block lba)
+
     def get_inode_table(self):
         super_block_lba = 0
         self.read_data(super_block_lba)
 
     
-    def read_data(self, lba):
-        memory_location = None
-        for i in range(len(ram)):
-            if ram[i] == 0:
-                ram[i] = 1
-                memory_location = i
-                break
-        self.block_device.submit_io_request_queue("READ", memory_location)
+    def read_data(self, filename):
+        if len(self.inode_table) == 0:
+            # Get inode_table
+            pass
+
+        lbas = self.inode_table[filename]["assigned_lbas"]
+        for lba in lbas:
+            memory_location = None
+            for i in range(len(ram)):
+                if ram[i] == 0:
+                    ram[i] = 1
+                    memory_location = i
+                    break
+            self.block_device.submit_io_request_queue(lba, "READ", memory_location)
 
     def write_data(self, lba, data):
+        # Homework 
+        # Figure out from the bit block map, the available lba to write the data. It must first figure out the length of the data, and how many lba's needed and then find which lba's are available.
         self.block_device.submit_io_request_queue("WRITE", data)
 
 
