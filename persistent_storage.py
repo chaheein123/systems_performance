@@ -23,6 +23,11 @@ completion_queue = []
 # data
 # The data itself looks like a pure string
 
+class VFS:
+    def __init__(self):
+        pass
+    def read_file(self):
+        pass
 
 
 class FileSystemDriver:
