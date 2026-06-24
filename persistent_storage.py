@@ -46,26 +46,27 @@ class FileSystemDriver:
         # self.block_bit_map = self.ssd_controller.request_block_bit_map()
         # Super block is only a metadata. It contains the lba's for the real data for the block bit map AND the inode table
 
-
-    def get_inode_table(self):
-        super_block_lba = 0
-        self.read_data(super_block_lba)
-
-    
-    def read_data(self, filename):
-        if len(self.inode_table) == 0:
-            # Get inode_table
-            pass
-
+    def read_file(self, filename):
         lbas = self.inode_table[filename]["assigned_lbas"]
+        return(self.read_data(lbas))
+    
+    def read_data(self, lbas):
+        mem_locations = []
         for lba in lbas:
             memory_location = None
             for i in range(len(ram)):
                 if ram[i] == 0:
                     ram[i] = 1
                     memory_location = i
+                    mem_locations.append(i)
                     break
             self.block_device.submit_io_request_queue(lba, "READ", memory_location)
+        return mem_locations
+    
+    def get_inode_table(self):
+        super_block_lba = 0
+        raw_inode_table = self.read_data(super_block_lba)
+
 
     def write_data(self, lba, data):
         # Homework 
@@ -228,14 +229,14 @@ class SsdController:
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(block_num)]
-        self.plane[0][0].data = "{block_bitmap_start_lba: 1, inode_table_start_lba: 2}"
-        self.plane[0][0].is_empty = False
+        self.plane[0].pages[0].data = "{block_bitmap_start_lba: 1, inode_table_start_lba: 2}"
+        self.plane[0].pages[0].is_empty = False
         init_block_bit_map = [0] * lba_length
         init_block_bit_map[0:3] = [1, 1, 1]
-        self.plane[0][1].data = str(init_block_bit_map)
-        self.plane[0][1].is_empty = False
-        self.plane[0][2].data = "{}"
-        self.plane[0][2].is_empty = False
+        self.plane[0].pages[1].data = str(init_block_bit_map)
+        self.plane[0].pages[1].is_empty = False
+        self.plane[0].pages[2].data = "{}"
+        self.plane[0].pages[2].is_empty = False
 
 class DeviceDriver:
 
