@@ -1,4 +1,5 @@
 from enum import Enum
+import yaml
 
 ram = [0] * 1000
 page_length = 100
@@ -40,7 +41,10 @@ class FileSystemDriver:
         # raw_inode_table = self.block_device.()
         self.inode_table = {}
 
-        self.block_device.submit_io_request_queue("READ", None)
+        self.fs_metadata = self.get_fs_metadata()
+        self.block_bit_map = self.fs_metadata["block_bitmap_start_lba"]
+        self.inode_table = self.fs_metadata["inode_table_start_lba"]
+        # self.inode_table = self.read_data([inode_table_start_lba])
 
 
         # self.block_bit_map = self.ssd_controller.request_block_bit_map()
@@ -48,8 +52,12 @@ class FileSystemDriver:
 
     def read_file(self, filename):
         lbas = self.inode_table[filename]["assigned_lbas"]
-        return(self.read_data(lbas))
-    
+        data_index = self.read_data(lbas)
+        data = ""
+        for i in data_index:
+            data += ram[i]
+        return data
+
     def read_data(self, lbas):
         mem_locations = []
         for lba in lbas:
@@ -63,10 +71,10 @@ class FileSystemDriver:
             self.block_device.submit_io_request_queue(lba, "READ", memory_location)
         return mem_locations
     
-    def get_inode_table(self):
+    def get_fs_metadata(self):
         super_block_lba = 0
-        raw_inode_table = self.read_data(super_block_lba)
-
+        raw_data = self.read_data([super_block_lba])
+        return yaml.safe_load(raw_data)
 
     def write_data(self, lba, data):
         # Homework 
