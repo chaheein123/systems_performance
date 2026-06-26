@@ -44,6 +44,9 @@ class FileSystemDriver:
         self.fs_metadata = self.get_fs_metadata()
         self.block_bit_map = self.fs_metadata["block_bitmap_start_lba"]
         self.inode_table = self.fs_metadata["inode_table_start_lba"]
+        print("This is the block bit map", self.block_bit_map)
+        print("This is the inode table", self.inode_table)
+
         # self.inode_table = self.read_data([inode_table_start_lba])
 
 
@@ -72,12 +75,21 @@ class FileSystemDriver:
         return mem_locations
     
     def get_fs_metadata(self):
+        # print(ram)
         super_block_lba = 0
-        raw_data = self.read_data([super_block_lba])
-        return yaml.safe_load(raw_data)
+        mem_locations = self.read_data([super_block_lba])
+        print("mem_locations", mem_locations)
+        print(ram)
+        data = ""
+        for i in mem_locations:
+            print("hi", ram[i])
+            data += ram[i]
+
+        print("raw_data", data)
+        
+        return yaml.safe_load(data)
 
     def write_data(self, lba, data):
-        # Homework 
         # Figure out from the bit block map, the available lba to write the data. It must first figure out the length of the data, and how many lba's needed and then find which lba's are available.
         self.block_device.submit_io_request_queue("WRITE", data)
 
@@ -92,18 +104,20 @@ class BlockDevice:
         # device_driver.submit_io("READ", 2, "", 1)
     
     def submit_io_request_queue(self, lba, opcode, data):
+        # Homework
         self.io_request_queue.append(
             {"opcode": opcode, "data": data}
         )
 
     def merge_request(self, opcode, data):
-        slba = 
-        block_count = 
+        # slba = 
+        # block_count = 
 
 
 
 
-        self.device_driver.submit_io()
+        # self.device_driver.submit_io()
+        pass
 
     
 
@@ -298,6 +312,7 @@ my_ssd = Ssd()
 my_ssd_controller = SsdController(my_ssd)
 
 my_kernel = Kernel(my_ssd_controller)
+
 # my_device_driver = DeviceDriver(my_ssd_controller, my_kernel)
 # my_fs_driver = FileSystemDriver(my_ssd_controller, my_device_driver)
 
