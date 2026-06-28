@@ -104,12 +104,13 @@ class BlockDevice:
         # device_driver.submit_io("READ", 2, "", 1)
     
     def submit_io_request_queue(self, lba, opcode, data):
-        # Homework
         self.io_request_queue.append(
-            {"opcode": opcode, "data": data}
+            {"opcode": opcode, "lba": lba, "data": data}
         )
 
     def merge_request(self, opcode, data):
+        # Homework
+        
         # slba = 
         # block_count = 
 
@@ -170,7 +171,7 @@ class Page:
         self.page_id = page_id
         # Supposed to be 4096 bytes
         self.data_length = page_length
-        self.data = ""
+        self.data = " " * page_length
         self.is_empty = True
     
     def __str__(self):
@@ -210,7 +211,7 @@ class SsdController:
             for y in range(len(self.ssd.plane[i])):
                 if self.ssd.plane[i][y].is_empty:
                     self.ssd.plane[i][y].is_empty = False
-                    self.ssd.plane[i][y].data = data
+                    self.ssd.plane[i][y].data = data.ljust(page_length)
                     self.flash_translation_layer[ftl_index] = {
                         "block": i,
                         "page": y,
@@ -251,13 +252,13 @@ class SsdController:
 class Ssd:
     def __init__(self):
         self.plane = [Block(i) for i in range(block_num)]
-        self.plane[0].pages[0].data = "{block_bitmap_start_lba: 1, inode_table_start_lba: 2}"
+        self.plane[0].pages[0].data = "{block_bitmap_start_lba: 1, inode_table_start_lba: 2}".ljust(page_length)
         self.plane[0].pages[0].is_empty = False
         init_block_bit_map = [0] * lba_length
         init_block_bit_map[0:3] = [1, 1, 1]
-        self.plane[0].pages[1].data = str(init_block_bit_map)
+        self.plane[0].pages[1].data = str(init_block_bit_map).ljust(page_length)
         self.plane[0].pages[1].is_empty = False
-        self.plane[0].pages[2].data = "{}"
+        self.plane[0].pages[2].data = "{}".ljust(page_length)
         self.plane[0].pages[2].is_empty = False
 
 class DeviceDriver:
