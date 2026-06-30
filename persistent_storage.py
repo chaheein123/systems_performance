@@ -1,5 +1,7 @@
 from enum import Enum
 import yaml
+import threading
+import time
 
 ram = [0] * 1000
 page_length = 100
@@ -124,12 +126,45 @@ class BlockDevice:
             )
 
     def merge_request(self):
-        # Homework
+
         # This function will be run by the FS driver every 3 seconds. It will gather every io_request in the io_request_queue
-        # self.io_request_queue
+        # Homework
+        # Make sure that the opcode are the same as well for homework
+        # def submit_io(self, opcode, lba, data_payload, num_blocks=1):
+        self.io_request_queue.sort(key=lambda req: (req["opcode"], req["lba"]))
+        # while len(self.io_request_queue):
+        current_stack = []
+        while len(self.io_request_queue) > 0:
+            r = self.io_request_queue.pop(0)
+            if len(current_stack) == 0 or ((current_stack[-1]["lba"] == r["lba"] - 1) and ):
+                current_stack.append(r)
+            else:
+                self.device_driver.submit_io()
+                current_stack = []
+
+                pass
+            # r = self.io_request_queue.pop(0)
+            current_stack.append(r)
+
+
+
+
+
+        # for i in range(len(self.io_request_queue) - 1):
+        #     if self.io_request_queue[i]["lba"] + 1 == self.io_request_queue[(i + 1)]["lba"]:
+
+        #         pass
+
+
+            
+
         
         # slba = 
         # block_count = 
+
+
+
+
 
 
 
