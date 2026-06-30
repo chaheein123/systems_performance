@@ -100,16 +100,33 @@ class BlockDevice:
     def __init__(self, device_driver):
         self.device_driver = device_driver
         self.io_request_queue = []
+        self.queue_lock = threading.Lock()
+        self.worker_thread = threading.Thread(target=self._background_loop, daemon=True)
+        self.worker_thread.start()
 
         # device_driver.submit_io("READ", 2, "", 1)
     
+    def _background_loop(self):
+        """ This runs completely asynchronously in the background forever """
+        while True:
+            time.sleep(0.1) # Wake up every 5 milliseconds (our simulated timer)
+            
+            # Acquire the lock to safely check and process the queue
+            with self.queue_lock:
+                if len(self.io_request_queue) > 0:
+                    print("\n[Timer] Background thread woke up! Flushing queue...")
+                    self.merge_request()
+    
     def submit_io_request_queue(self, lba, opcode, data):
-        self.io_request_queue.append(
-            {"opcode": opcode, "lba": lba, "data": data}
-        )
+        with self.queue_lock:
+            self.io_request_queue.append(
+                {"opcode": opcode, "lba": lba, "data": data}
+            )
 
-    def merge_request(self, opcode, data):
+    def merge_request(self):
         # Homework
+        # This function will be run by the FS driver every 3 seconds. It will gather every io_request in the io_request_queue
+        # self.io_request_queue
         
         # slba = 
         # block_count = 
