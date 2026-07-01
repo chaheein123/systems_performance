@@ -124,65 +124,28 @@ class BlockDevice:
             self.io_request_queue.append(
                 {"opcode": opcode, "lba": lba, "data": data}
             )
+    
+    def submit_current_stack(self, current_stack):
+        block_count = len(current_stack)
+        data_payload = ""
+        opcode = current_stack[0]["opcode"]
+        slba = current_stack[0]["lba"]
+        for r in current_stack:
+            data_payload += r["data"]
+        self.device_driver.submit_io(opcode, slba, data_payload, block_count)
 
     def merge_request(self):
-
         # This function will be run by the FS driver every 3 seconds. It will gather every io_request in the io_request_queue
-        # Homework
-        # Make sure that the opcode are the same as well for homework
-        # def submit_io(self, opcode, lba, data_payload, num_blocks=1):
         self.io_request_queue.sort(key=lambda req: (req["opcode"], req["lba"]))
-        # while len(self.io_request_queue):
         current_stack = []
         while len(self.io_request_queue) > 0:
             r = self.io_request_queue.pop(0)
-            if len(current_stack) == 0 or ((current_stack[-1]["lba"] == r["lba"] - 1) and ):
+            if len(current_stack) == 0 or ((current_stack[-1]["lba"] == r["lba"] - 1) and current_stack[-1]["opcode"] == r["opcode"]):
                 current_stack.append(r)
             else:
-                self.device_driver.submit_io()
-                current_stack = []
-
-                pass
-            # r = self.io_request_queue.pop(0)
-            current_stack.append(r)
-
-
-
-
-
-        # for i in range(len(self.io_request_queue) - 1):
-        #     if self.io_request_queue[i]["lba"] + 1 == self.io_request_queue[(i + 1)]["lba"]:
-
-        #         pass
-
-
-            
-
-        
-        # slba = 
-        # block_count = 
-
-
-
-
-
-
-
-
-        # self.device_driver.submit_io()
-        pass
-
-    
-
-    
-
-
-
-        
-    
-    
-
-
+                self.submit_current_stack(current_stack)
+                current_stack = [r]
+        self.submit_current_stack(current_stack)
 
 class Kernel:
     def __init__(self, ssd_controller):
@@ -337,6 +300,9 @@ class DeviceDriver:
             data=data_payload, 
             block_count=num_blocks
         )
+
+        # Homework
+        # We have to now figure out what happens after we create the sqe and ring_door_bell()
         
         print(f"[Driver] Block Device handed off request. Packaged SQE (CID: {assigned_cid})")
         
