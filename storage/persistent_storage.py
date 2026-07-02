@@ -61,8 +61,10 @@ class FileSystemDriver:
         data = ""
         for i in data_index:
             data += ram[i]
+        print(data)
         return data
 
+    # Homework
     def read_data(self, lbas):
         mem_locations = []
         for lba in lbas:
@@ -70,10 +72,12 @@ class FileSystemDriver:
             for i in range(len(ram)):
                 if ram[i] == 0:
                     ram[i] = 1
+                    # ram[i]
                     memory_location = i
                     mem_locations.append(i)
                     break
             self.block_device.submit_io_request_queue(lba, "READ", memory_location)
+        print("These are the memory locations, ", mem_locations)
         return mem_locations
     
     def get_fs_metadata(self):
@@ -84,7 +88,7 @@ class FileSystemDriver:
         print(ram)
         data = ""
         for i in mem_locations:
-            print("hi", ram[i])
+            print("hi", ram[i], data, ram)
             data += ram[i]
 
         print("raw_data", data)
@@ -251,8 +255,8 @@ class SsdController:
                 data_lba_mapping = {}
                 beginning_index = 0
                 for i in range(len(searching_lba)):
-                    data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:beginning_index+100]
-                    beginning_index += 100
+                    data_lba_mapping[searching_lba[i]] = sqe.data[beginning_index:beginning_index + page_length]
+                    beginning_index += page_length
             
                 self.find_available_page(data_lba_mapping)
 
@@ -301,13 +305,10 @@ class DeviceDriver:
             block_count=num_blocks
         )
 
-        # Homework
-        # We have to now figure out what happens after we create the sqe and ring_door_bell()
-        
         print(f"[Driver] Block Device handed off request. Packaged SQE (CID: {assigned_cid})")
         
         # 3. Call your queue helper to drop it in the list and poke the hardware
-        # self.write_to_submission_queue(sqe)
+        self.write_to_submission_queue(sqe)
 
 
     def translate_to_bin(self, cid, opcode, slba, data, block_count=1):
