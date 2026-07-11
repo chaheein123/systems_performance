@@ -24,25 +24,34 @@ class DataData:
 class DataSegment:
     # TCP segment (Layer 4)
     # Create tcp header and add application data = segment
-    def __init__(self, data_data):
+    def __init__(self, data_data, source_port, destination_port):
         self.data_data = data_data
-
+        self.source_port = source_port
+        self.destination_port = destination_port
 
 
 class DataPacket:
-    def __init__(self):
-        pass
+    def __init__(self, data_segment, source_ip, destination_ip, protocol):
+        self.data_segment = data_segment
+        self.source_ip = source_ip
+        self.destination_ip = destination_ip
+        self.protocol = protocol
 
 class DataFrame:
-    def __init__(self):
-        pass
+    def __init__(self, data_packet, source_mac, destination_mac):
+        self.data_packet = data_packet
+        self.source_mac = source_mac
+        self.destination_mac = destination_mac
 
 class NetworkRouter:
     def __init__(self):
-        pass
+        # self.routing_table = {}
+        # self.mac_table = {}
+        # self.ip_table = {}
+        self.ledger = {}
 
 class NetworkServer:
-    def __init__(self):
+    def __init__(self, ip_address, mac_address):
         pass
 
     def send_http_request(self):
