@@ -43,22 +43,3 @@ class DataFrame:
         self.source_mac = source_mac
         self.destination_mac = destination_mac
 
-class NetworkRouter:
-    def __init__(self):
-        # self.routing_table = {}
-        # self.mac_table = {}
-        # self.ip_table = {}
-        self.ledger = {}
-
-class NetworkServer:
-    def __init__(self, ip_address, mac_address):
-        pass
-
-    def send_http_request(self):
-        pass
-
-    def create_data_data():
-        pass
-
-    def create_data_segment():
-        pass
