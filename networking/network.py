@@ -25,6 +25,7 @@ class NetworkServer:
             destination_ip=destination_ip,
             protocol="TCP"
         )
+        # Homework. Figure out how to find the destination mac address given the destination ip address. You can use ARP protocol to find the mac address of the destination ip address.
         # data_frame = self.create_data_frame(
         #     data_packet=data_packet,
         #     source_mac=self.mac_address,
