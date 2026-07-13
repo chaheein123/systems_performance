@@ -25,7 +25,25 @@ class NetworkServer:
             destination_ip=destination_ip,
             protocol="TCP"
         )
+
+        destination_mac = self.retrieve_dest_mac_address()
+
         # Homework. Figure out how to find the destination mac address given the destination ip address. You can use ARP protocol to find the mac address of the destination ip address.
+        # If the local arp cache has the destination mac then it will use that ip, if not then it will initiate arp broadcast
+
+        # The kernel reads the Destination IP (142.250.190.46) and checks its internal Routing Table dictionary (ip route). It sees that Google is not on the local network, meaning the packet must be sent to the Default Gateway (your home router, 192.168.1.1).
+
+        # The ARP Lookup: The computer realizes it needs the router's physical MAC address.
+
+        # It checks its local ARP Cache ledger.
+
+        # If it's a match: It grabs the MAC address.
+
+        # If it's a miss: It pauses the data packet, shoots an ARP Broadcast (FF:FF:FF:FF:FF:FF) shouting across the room, gets the router's hardware MAC address (BB:BB:BB:BB:BB:BB), and caches it.
+
+
+
+        # 
         # data_frame = self.create_data_frame(
         #     data_packet=data_packet,
         #     source_mac=self.mac_address,
