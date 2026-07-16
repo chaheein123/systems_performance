@@ -1,6 +1,13 @@
 from data import *
 
-class NetworkRouter:
+# This is a mapping of mac address to the object
+server_registry = {}
+
+class NetworkDevice:
+    pass
+
+
+class NetworkRouter(NetworkDevice):
     def __init__(self, mac_address):
         # self.routing_table = {}
         # self.mac_table = {}
@@ -8,11 +15,10 @@ class NetworkRouter:
         self.mac_address = mac_address
         self.nat_translation_table = {}
         self.routing_table = {}
+        server_registry[mac_address] = self
 
 class NetworkSwitch:
     def __init__(self):
-        # Homework
-        # Fix this table so tthat the mapping is the index to the server object itself. not just the mac address. 
         self.mac_address_table = {
             0: None,
             1: None,
@@ -34,13 +40,14 @@ class NetworkSwitch:
 
 
 
-class NetworkServer:
+class NetworkServer(NetworkDevice):
     def __init__(self, network_router, ip_address, mac_address):
         self.network_router = network_router
         # self.network_switch = network_switch
         self.ip_address = ip_address
         self.mac_address = mac_address
         self.local_arp_cache = {}
+        server_registry[mac_address] = self
         # network_switch.connect_device(self.mac_address)
 
     def send_http_request(self, metadata, data, source_port, destination_port, destination_ip):
@@ -64,6 +71,8 @@ class NetworkServer:
             source_mac = self.mac_address,
             destination_mac = destination_mac
         )
+
+        server_registry["destination_mac"].process_data_frame()
 
         
 
@@ -146,3 +155,4 @@ network_server.send_http_request(
 )
 
 print(network_switch.mac_address_table[0].mac_address)
+print(server_registry)
