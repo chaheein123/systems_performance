@@ -24,43 +24,44 @@ class NetworkSwitch:
                 return self.mac_address_table[i].mac_address
 
 class NetworkDevice:
-    def __init__(self, mac_address, device):
+    def __init__(self, mac_address, ip_address, device):
         self.mac_address = mac_address
-        server_registry[mac_address] = device
-    
-    def process_data_frame(self, data_frame):
-        # Process the data frame and extract the data packet
-        data_packet = data_frame.data_packet
-        # Process the data packet and extract the data segment
-        data_segment = data_packet.data_segment
-        # Process the data segment and extract the data
-        data_data = data_segment.data_data
-
-
-# Homework
-# Routers first look at the packet and checks its destination ip and uses the routing table to determine the next hop router.
-# NAT table is to rewrite the source IP to router's public ip (this happens only once when the packet leaves the private network)
-# Routing table is used to map ip subnets to a next hop router ip 
-
-class NetworkRouter(NetworkDevice):
-    def __init__(self, mac_address):
-        # self.routing_table = {}
-        # self.mac_table = {}
-        # self.ip_table = {}
-        self.mac_address = mac_address
+        self.ip_address = ip_address
         self.nat_translation_table = {}
         self.routing_table = {}
-        super().__init__(mac_address, self)
+        server_registry[mac_address] = device
+
+    # Homework
+    # Routers first look at the packet and checks its destination ip and uses the routing table to determine the next hop router.
+    # NAT table is to rewrite the source IP to router's public ip (this happens only once when the packet leaves the private network)
+    # Routing table is used to map ip subnets to a next hop router ip 
+    def process_data_frame(self, data_frame, network_type):
+        data_frame.source_mac = self.mac_address
+        if network_type == "LAN":
+            data_packet = data_frame.data_packet
+            data_packet.source_ip = 
+        
+
+        elif network_type == "WAN":
+            pass
+        # Process the data frame and extract the data packet
+        
+        # Process the data packet and extract the data segment
+        # data_segment = data_packet.data_segment
+        # Process the data segment and extract the data
+        # data_data = data_segment.data_data
+
+
+class NetworkRouter(NetworkDevice):
+    def __init__(self, mac_address, ip_address):
+        super().__init__(mac_address, ip_address, self)
 
 
 class NetworkServer(NetworkDevice):
     def __init__(self, network_router, ip_address, mac_address):
         self.network_router = network_router
-        # self.network_switch = network_switch
-        self.ip_address = ip_address
-        self.mac_address = mac_address
         self.local_arp_cache = {}
-        super().__init__(mac_address, self)
+        super().__init__(mac_address, ip_address, self)
 
         # network_switch.connect_device(self.mac_address)
 
@@ -86,7 +87,7 @@ class NetworkServer(NetworkDevice):
             destination_mac = destination_mac
         )
 
-        server_registry["destination_mac"].process_data_frame(data_frame)
+        server_registry["destination_mac"].process_data_frame(data_frame, "LAN")
 
         
 
