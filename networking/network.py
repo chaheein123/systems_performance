@@ -31,11 +31,10 @@ class NetworkDevice:
         self.routing_table = {}
         server_registry[mac_address] = device
 
-    # Homework
-    # Routers first look at the packet and checks its destination ip and uses the routing table to determine the next hop router.
-    # NAT table is to rewrite the source IP to router's public ip (this happens only once when the packet leaves the private network)
-    # Routing table is used to map ip subnets to a next hop router ip 
-    def process_data_frame(self, data_frame, network_type):
+    def send_data_frame(self):
+        pass
+
+    def process_data_frame(self, data_frame, network_type, next_hop):
         data_frame.source_mac = self.mac_address
         if network_type == "LAN":
             data_packet = data_frame.data_packet
@@ -67,31 +66,62 @@ class NetworkServer(NetworkDevice):
 
     def send_http_request(self, metadata, data, source_port, destination_port, destination_ip):
         data_segment = self.create_data_segment(
-            metadata="HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nContent-Length: 85\nServer: nginx/1.25.3",
-            data={"id": 180, "username": "devops_engineer", "status": "active", "location": "California"},
-            source_port=source_port,
-            destination_port=destination_port
+            metadata = metadata,
+            data = data,
+            source_port = source_port,
+            destination_port = destination_port
         )
         data_packet = self.create_data_packet(
-            data_segment=data_segment,
-            source_ip=self.ip_address,
-            destination_ip=destination_ip,
-            protocol="TCP"
+            data_segment = data_segment,
+            source_ip = self.ip_address,
+            destination_ip = destination_ip,
+            protocol = "TCP"
         )
 
-        destination_mac = self.retrieve_dest_mac_address(destination_ip)
 
+        # server_registry["destination_mac"].process_data_frame(data_frame, "LAN", self.network_router)
+        # Homework
+
+        # Routing table look up ("Destination is outside my subnet. Use Default Gateway 192.168.1.1 out via eth0.") -> 
+        # postrouting hook ("Packet is leaving eth0. Apply any SNAT/Masquerade rules if configured.") ->
+        # ARP Lookup ("Find MAC address for Gateway 192.168.1.1 -> BB:BB:BB:BB:BB:BB.")
+        # Build Ethernet Frame
+
+        # Routing table lookup
+        # Need: Routing table.
+        # routing_table = [
+        #     {"network": "127.0.0.1/32", "gateway": "On-link",     "interface": "lo"},
+        #     {"network": "10.50.1.0/24", "gateway": "192.168.1.254", "interface": "eth1"},
+        #     {"network": "10.0.0.0/8",   "gateway": "192.168.1.200", "interface": "tun0"},
+        #     {"network": "192.168.1.0/24","gateway": "On-link",     "interface": "eth0"},
+        #     {"network": "0.0.0.0/0",    "gateway": "192.168.1.1",   "interface": "eth0"}  # Default
+        # ]
+
+
+
+
+        # Postrouting hook
+
+
+
+
+
+        # ARP lookup
+
+
+
+
+        destination_mac = self.retrieve_dest_mac_address(destination_ip)
+        
         data_frame = self.create_data_frame(
             data_packet = data_packet,
             source_mac = self.mac_address,
             destination_mac = destination_mac
         )
 
-        server_registry["destination_mac"].process_data_frame(data_frame, "LAN")
 
-        
 
-        print("This is the destination mac", destination_mac)
+
 
     def retrieve_dest_mac_address(self, destination_ip):
         if destination_ip in self.local_arp_cache: return self.local_arp_cache[destination_ip]
@@ -102,9 +132,6 @@ class NetworkServer(NetworkDevice):
             return self.network_switch.broadcast_arp_request(destination_ip)
         else:
             return self.network_router.mac_address
-            
-
-
     
     def create_data_frame(self, data_packet, source_mac, destination_mac):
         return DataFrame(
@@ -112,7 +139,6 @@ class NetworkServer(NetworkDevice):
             source_mac=source_mac,
             destination_mac=destination_mac
         )
-
 
     def create_data_segment(self, metadata, data, source_port, destination_port):
         data_data = DataData(
@@ -134,7 +160,7 @@ class NetworkServer(NetworkDevice):
         )
 
 
-network_router = NetworkRouter("C0:25:E9:37:97:EE")
+network_router = NetworkRouter("C0:25:E9:37:97:EE", "142.250.190.46")
 network_switch = NetworkSwitch()
 some_other_server = NetworkServer(network_router, "192.168.1.101", "00:1A:2B:3C:4D:5E")
 network_server = NetworkServer(network_router, "192.168.1.100", "1A:1A:2B:3C:4D:5E")
