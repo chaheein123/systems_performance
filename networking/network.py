@@ -24,7 +24,33 @@ class NetworkSwitch:
                 return self.mac_address_table[i].mac_address
 
 class NetworkDevice:
-    def __init__(self, mac_address, ip_address, device):
+    def __init__(self, mac_address, device):
+        self.mac_address = mac_address
+        server_registry[mac_address] = device
+    
+    def process_data_frame(self, data_frame):
+        # Process the data frame and extract the data packet
+        data_packet = data_frame.data_packet
+        # Process the data packet and extract the data segment
+        data_segment = data_packet.data_segment
+        # Process the data segment and extract the data
+        data_data = data_segment.data_data
+
+
+# Homework
+# Routers first look at the packet and checks its destination ip and uses the routing table to determine the next hop router.
+# NAT table is to rewrite the source IP to router's public ip (this happens only once when the packet leaves the private network)
+# Routing table is used to map ip subnets to a next hop router ip 
+# Prerouting -> routing table -> postrouting
+# Prerouting: For incoming packets, the router checks the destination IP address and uses the routing table to determine the next hop router. If the destination IP is within the private network, it forwards the packet to the appropriate device. If it's outside, it may perform NAT (Network Address Translation) to rewrite the source IP to the router's public IP before forwarding it to the next hop.
+# Postrouting: For outgoing packets, the router checks the source IP address and uses the NAT translation table to rewrite the source IP to the router's public IP before sending it out. It then uses the routing table to determine the next hop router for the destination IP address and forwards the packet accordingly
+# NAT table is devided into three parts: prerouting and postrouting and connection state tracking (conntrack table). Prerouting is for incoming packets, and postrouting is for outgoing packets. The router uses the routing table to determine the next hop router based on the destination IP address. If the destination IP is within the private network, it forwards the packet to the appropriate device. If it's outside, it may perform NAT to rewrite the source IP to the router's public IP before forwarding it to the next hop.
+
+class NetworkRouter(NetworkDevice):
+    def __init__(self, mac_address):
+        # self.routing_table = {}
+        # self.mac_table = {}
+        # self.ip_table = {}
         self.mac_address = mac_address
         self.ip_address = ip_address
         self.nat_translation_table = {}
