@@ -93,9 +93,12 @@ class NetworkServer(NetworkDevice):
         #     {"network": "127.0.0.1/32", "gateway": "On-link",     "interface": "lo"},
         #     {"network": "10.50.1.0/24", "gateway": "192.168.1.254", "interface": "eth1"},
         #     {"network": "10.0.0.0/8",   "gateway": "192.168.1.200", "interface": "tun0"},
-        #     {"network": "192.168.1.0/24","gateway": "On-link",     "interface": "eth0"},
-        #     {"network": "0.0.0.0/0",    "gateway": "192.168.1.1",   "interface": "eth0"}  # Default
+        #     {"network": "192.168.1.0/24", "gateway": "On-link",     "interface": "eth0"},
+        #     {"network": "0.0.0.0/0", "gateway": "192.168.1.1",   "interface": "eth0"}  # Default
         # ]
+        # Homework
+        # A router has both the public and private ip addresses
+         
 
 
 
