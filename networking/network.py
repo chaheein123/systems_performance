@@ -54,7 +54,30 @@ class NetworkRouter(NetworkDevice):
         self.nat_translation_table = {}
         # Homework
         # Build the routing table
-        # Looks like: {"192.168.1.0/24": "192.168.1.1", "0.0.0.0/0": "192.168.1.2"}
+        # routing_table = [
+        #     {
+        #         "destination": ipaddress.ip_network("172.31.0.2/32"),
+        #         "next_hop": None,
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "AWS DNS Resolver"
+        #     },
+        #     {
+        #         "destination": ipaddress.ip_network("172.31.0.0/20"),
+        #         "next_hop": None,
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "Local VPC Subnet"
+        #     },
+        #     {
+        #         "destination": ipaddress.ip_network("0.0.0.0/0"),
+        #         "next_hop": ipaddress.ip_address("172.31.0.1"),
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "Default Gateway"
+        #     }
+        # ]
+        # Looks like: {"192.168.1.0/24": "192.168.1.3", "0.0.0.0/0": "192.168.1.1"}
         self.routing_table = {}
         server_registry[mac_address] = device
 
@@ -114,14 +137,7 @@ class NetworkServer(NetworkDevice):
         # Build Ethernet Frame
 
         # Routing table lookup
-        # Need: Routing table.
-        # routing_table = [
-        #     {"network": "127.0.0.1/32", "gateway": "On-link",     "interface": "lo"},
-        #     {"network": "10.50.1.0/24", "gateway": "192.168.1.254", "interface": "eth1"},
-        #     {"network": "10.0.0.0/8",   "gateway": "192.168.1.200", "interface": "tun0"},
-        #     {"network": "192.168.1.0/24", "gateway": "On-link",     "interface": "eth0"},
-        #     {"network": "0.0.0.0/0", "gateway": "192.168.1.1",   "interface": "eth0"}  # Default
-        # ]
+  
         # A router has both the public and private ip addresses
 
 
