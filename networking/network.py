@@ -36,8 +36,6 @@ class NetworkDevice:
         # Process the data segment and extract the data
         data_data = data_segment.data_data
 
-
-# Homework
 # Routers first look at the packet and checks its destination ip and uses the routing table to determine the next hop router.
 # NAT table is to rewrite the source IP to router's public ip (this happens only once when the packet leaves the private network)
 # Routing table is used to map ip subnets to a next hop router ip 
@@ -54,6 +52,9 @@ class NetworkRouter(NetworkDevice):
         self.mac_address = mac_address
         self.ip_address = ip_address
         self.nat_translation_table = {}
+        # Homework
+        # Build the routing table
+        # Looks like: {"192.168.1.0/24": "192.168.1.1", "0.0.0.0/0": "192.168.1.2"}
         self.routing_table = {}
         server_registry[mac_address] = device
 
@@ -106,7 +107,6 @@ class NetworkServer(NetworkDevice):
 
 
         # server_registry["destination_mac"].process_data_frame(data_frame, "LAN", self.network_router)
-        # Homework
 
         # Routing table look up ("Destination is outside my subnet. Use Default Gateway 192.168.1.1 out via eth0.") -> 
         # postrouting hook ("Packet is leaving eth0. Apply any SNAT/Masquerade rules if configured.") ->
@@ -122,9 +122,7 @@ class NetworkServer(NetworkDevice):
         #     {"network": "192.168.1.0/24", "gateway": "On-link",     "interface": "eth0"},
         #     {"network": "0.0.0.0/0", "gateway": "192.168.1.1",   "interface": "eth0"}  # Default
         # ]
-        # Homework
         # A router has both the public and private ip addresses
-         
 
 
 
@@ -136,10 +134,6 @@ class NetworkServer(NetworkDevice):
 
 
         # ARP lookup
-
-
-
-
         destination_mac = self.retrieve_dest_mac_address(destination_ip)
         
         data_frame = self.create_data_frame(
