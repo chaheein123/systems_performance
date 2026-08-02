@@ -24,9 +24,34 @@ class NetworkSwitch:
                 return self.mac_address_table[i].mac_address
 
 class NetworkDevice:
-    def __init__(self, mac_address, device):
+    def __init__(self, mac_address, device, routing_table):
         self.mac_address = mac_address
         server_registry[mac_address] = device
+        self.routing_table = routing_table
+
+        # Homework
+        # Build the routing table
+
+        # routing_table = {
+        #     "172.31.0.2/32": {
+        #         "next_hop": None,
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "AWS DNS Resolver"
+        #     },
+        #     "172.31.0.0/20": {
+        #         "next_hop": None,
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "Local VPC Subnet"
+        #     },
+        #     "0.0.0.0/0": {
+        #         "next_hop": "172.31.0.1",
+        #         "interface": "ens5",
+        #         "metric": 512,
+        #         "description": "Default Gateway"
+        #     }
+        # }
     
     def process_data_frame(self, data_frame):
         # Process the data frame and extract the data packet
@@ -52,32 +77,7 @@ class NetworkRouter(NetworkDevice):
         self.mac_address = mac_address
         self.ip_address = ip_address
         self.nat_translation_table = {}
-        # Homework
-        # Build the routing table
-        # routing_table = [
-        #     {
-        #         "destination": ipaddress.ip_network("172.31.0.2/32"),
-        #         "next_hop": None,
-        #         "interface": "ens5",
-        #         "metric": 512,
-        #         "description": "AWS DNS Resolver"
-        #     },
-        #     {
-        #         "destination": ipaddress.ip_network("172.31.0.0/20"),
-        #         "next_hop": None,
-        #         "interface": "ens5",
-        #         "metric": 512,
-        #         "description": "Local VPC Subnet"
-        #     },
-        #     {
-        #         "destination": ipaddress.ip_network("0.0.0.0/0"),
-        #         "next_hop": ipaddress.ip_address("172.31.0.1"),
-        #         "interface": "ens5",
-        #         "metric": 512,
-        #         "description": "Default Gateway"
-        #     }
-        # ]
-        # Looks like: {"192.168.1.0/24": "192.168.1.3", "0.0.0.0/0": "192.168.1.1"}
+        
         self.routing_table = {}
         server_registry[mac_address] = device
 
